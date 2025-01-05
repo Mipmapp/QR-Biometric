@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>QR Code Scanner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg">
+      <ul class="glass">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+    </div>
+    <div id="loading-screen">
+      <img src="assets/svg/mark.svg" alt="Loading Mark" class="loading-mark" />
+    </div>
+
+    <main style="display: none">
+      <div id="scanner-container">
+        <!-- Online/Offline Notification -->
+        <div id="status-notification" class="status-notification">Online</div>
+
+        <div id="reader"></div>
+        <div id="result">
+          <p id="default-result">Results will appear here.</p>
+        </div>
+      </div>
+      <div id="fullscreen-buttons">
+        <button
+          class="fullscreen-button"
+          id="maximize-button"
+          style="display: flex"
+        >
+          Maximize <img src="assets/svg/fullscreen-in.svg" alt="Maximize"/>
+        </button>
+        <button
+          class="fullscreen-button"
+          id="minimize-button"
+          style="display: none"
+        >
+          Minimize <img src="assets/svg/fullscreen-out.svg" alt="Minimize" />
+        </button>
+      </div>
+    </main>
+
+    <!-- Audio files for match and error sounds -->
+    <audio id="match-sound" src="assets/match.m4a" preload="auto"></audio>
+    <audio id="error-sound" src="assets/error.mp3" preload="auto"></audio>
+
+    <script src="js/html5-qrcode.min.js"></script>
+    <script>
+      let scanner;
+
+      // Check if online/offline and update the status notification
+      window.addEventListener("online", () => {
+        document.getElementById("status-notification").textContent = "Online";
+        document.getElementById("status-notification").style.backgroundColor =
+          "#28a745"; // Green for online
+      });
+
+      window.addEventListener("offline", () => {
+        document.getElementById("status-notification").textContent = "Offline";
+        document.getElementById("status-notification").style.backgroundColor =
+          "#dc3545"; // Red for offline
+      });
+
+      // Show fullscreen buttons when status notification is clicked
+      document
+        .getElementById("status-notification")
+        .addEventListener("click", () => {
+          const buttonsContainer = document.getElementById("fullscreen-buttons");
+          buttonsContainer.classList.toggle("show"); // Toggle the fullscreen buttons
+        });
+
+      function hideLoadingScreen() {
+        const loadingScreen = document.getElementById("loading-screen");
+        const main = document.querySelector("main");
+        const scannerContainer = document.getElementById("scanner-container");
+        scannerContainer.style.opacity = 1;
+        scannerContainer.style.transform = "translateY(0)";
+        main.style.display = "flex";
+
+        setTimeout(() => {
+          loadingScreen.style.opacity = "0";
+          setTimeout(() => {
+            loadingScreen.style.display = "none";
+          }, 2000);
+        }, 3000);
+      }
+
+      let cachedRegisteredUsers = null; // Store previously fetched data
+
+      async function fetchRegisteredUsers() {
+        if (cachedRegisteredUsers) {
+          return cachedRegisteredUsers;
+        }
+
+        try {
+          const response = await fetch("registered.json");
+          cachedRegisteredUsers = await response.json();
+          return cachedRegisteredUsers;
+        } catch (error) {
+          console.error("Error loading registered users:", error);
+          if (cachedRegisteredUsers) {
+            return cachedRegisteredUsers;
+          } else {
+            return [];
+          }
+        }
+      }
+
+      function initializeScanner() {
+        scanner = new Html5Qrcode("reader");
+        scanner.start(
+          { facingMode: "user" }, // Use the front camera
+          {
+            qrbox: { width: 250, height: 250 },
+            fps: 20,
+          },
+          async (decodedText) => {
+            const registeredIds = await fetchRegisteredUsers();
+            const user = registeredIds.find((user) => user.id === decodedText);
+            const loginTime = new Date().toLocaleString();
+
+            // Play match sound if user is found
+            if (user) {
+              document.getElementById("result").innerHTML = `
+              <div id="user-info">
+                <img src="${user.image}" alt="${user.name}" class="user-image" />
+                <h3 align="center" class="user-name">${user.name}</h3>
+                <h4 class="user-grade">Grade: ${user.grade}</h4>
+                <h4 class="user-section">Section: ${user.section}</h4>
+                <p class="login-time">Logged in at: ${loginTime}</p>
+              </div>
+            `;
+              document.getElementById("match-sound").play();
+            } else {
+              document.getElementById("result").innerHTML = `
+              <p>No registered user found for this QR code: ${decodedText}</p>
+              <p class="login-time">Scan time: ${loginTime}</p>
+            `;
+              document.getElementById("error-sound").play();
+            }
+          },
+          (error) => {
+            console.error(error);
+          }
+        );
+      }
+
+      function adjustScannerContainer() {
+        const scannerContainer = document.getElementById("scanner-container");
+        const reader = document.getElementById("reader");
+        const result = document.getElementById("result");
+
+        if (window.innerWidth > window.innerHeight) {
+          scannerContainer.style.flexDirection = "row";
+          reader.style.width = "50%";
+          result.style.width = "50%";
+          scannerContainer.style.gap = "20px";
+        } else {
+          scannerContainer.style.flexDirection = "column";
+          reader.style.width = "100%";
+          result.style.width = "100%";
+          scannerContainer.style.gap = "20px";
+        }
+      }
+
+      let timeout; // Variable to store the timeout function
+
+      // Function to hide the fullscreen buttons after 3 seconds of inactivity
+      function hideFullscreenButtons() {
+        const buttonsContainer = document.getElementById("fullscreen-buttons");
+        buttonsContainer.classList.remove("show"); // Hide the buttons by removing the 'show' class
+      }
+
+      // Reset the timer every time a button is clicked
+      function resetButtonTimer() {
+        clearTimeout(timeout); // Clear the previous timeout if any
+        timeout = setTimeout(hideFullscreenButtons, 3000); // Set a new timeout to hide the buttons after 3 seconds
+      }
+
+      // Function to toggle fullscreen and show/hide buttons
+      function toggleFullScreen() {
+        const maximizeButton = document.getElementById("maximize-button");
+        const minimizeButton = document.getElementById("minimize-button");
+
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().then(() => {
+            maximizeButton.style.display = "none";
+            minimizeButton.style.display = "flex";
+          });
+        } else {
+          document.exitFullscreen().then(() => {
+            maximizeButton.style.display = "flex";
+            minimizeButton.style.display = "none";
+          });
+        }
+
+        resetButtonTimer(); // Reset the timer every time the buttons are clicked
+      }
+
+      // Add event listeners for clicking maximize and minimize buttons
+      document
+        .getElementById("maximize-button")
+        .addEventListener("click", () => {
+          toggleFullScreen();
+          resetButtonTimer(); // Reset the timer on maximize button click
+        });
+      document
+        .getElementById("minimize-button")
+        .addEventListener("click", () => {
+          toggleFullScreen();
+          resetButtonTimer(); // Reset the timer on minimize button click
+        });
+
+      window.addEventListener("resize", adjustScannerContainer);
+      window.addEventListener("load", () => {
+        hideLoadingScreen();
+        adjustScannerContainer();
+        initializeScanner(); // Automatically start scanner with the front camera
+      });
+    </script>
+  </body>
+</html>
