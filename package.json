@@ -1,0 +1,17 @@
+{
+  "name": "qr-biometric",
+  "version": "1.0.0",
+  "description": "My QR-Code Biometric for school purposes",
+  "main": "index.js",
+  "scripts": {
+    "test": "/"
+  },
+  "keywords": [
+    "QR"
+  ],
+  "author": "Jullan Maglinte",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

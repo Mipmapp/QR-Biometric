@@ -1,0 +1,18 @@
+[
+  {
+    "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
+    "name": "Jullan Carl J. Maglinte",
+    "grade": "12",
+    "section": "St. John Paul II",
+    "registered": true,
+    "image": ""
+  },
+  {
+    "id": "B93F1521-A680-43F5-8808-542CF33391DC",
+    "name": "Janiela J. Maglinte",
+    "grade": "9",
+    "section": "St. Margaret Mary",
+    "registered": true,
+    "image": "https://via.placeholder.com/150?text=Janiela+Maglinte"
+  }
+]
