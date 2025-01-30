@@ -202,18 +202,25 @@ video {
     flex-direction: row;
     justify-content: space-between;
     gap: 20px;
+    width: 90%; /* Adjust width for better fit */
+    height: 80%; /* Adjust height for better fit */
+    max-width: 1200px; /* Increase max-width for larger screens */
   }
 
   #reader {
-    width: 60%; 
+    width: 50%; /* Adjust camera width */
     height: auto;
-    aspect-ratio: 1 / 1;
-    margin-top: 8px;
+    aspect-ratio: 1 / 1; /* Keep the camera square */
   }
 
   #result {
-    width: 40%;
+    width: 45%; /* Adjust result width */
     height: 100%;
+    font-size: 1em; /* Adjust font size for smaller screens */
+  }
+
+  .status-notification {
+    font-size: 0.8em; /* Adjust status notification size */
   }
 }
 
