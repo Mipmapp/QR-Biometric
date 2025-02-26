@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Registration</title>
+    <link rel="stylesheet" href="register.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.7/html5-qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Register User</h2>
+        <div id="qr-reader" class="qr-box"></div>
+        <p id="scan-result">Scan a QR code to get started</p>
+        
+        <form id="register-form" style="display: none;">
+            <div class="form-group">
+                <input type="hidden" id="user-id" name="id">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="grade">Grade</label>
+                <select id="grade" name="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="section">Section</label>
+                <input type="text" id="section" name="section" required>
+            </div>
+
+            <div class="form-group">
+                <label for="mobile_num">Mobile Number</label>
+                <input type="text" id="mobile_num" name="mobile_num" required>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Upload Image</label>
+                <input type="file" id="image" name="image" accept="image/*" onchange="previewImage()">
+                <div id="image-preview">
+                    <img id="preview-img" src="" alt="Image Preview" style="max-width: 100%; height: auto; display: none;">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Register</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const container = document.querySelector(".container");
+
+           container.addEventListener("scroll", function () {
+             // Check if scrolled to bottom
+                if (container.scrollHeight - container.scrollTop <= container.clientHeight + 10) {
+                    container.classList.add("gravity");
+
+            // Remove the class after animation completes
+                    setTimeout(() => {
+                         container.classList.remove("gravity");
+                   }, 300);
+               }
+           });
+        });
+
+        let qrCodeScanner;
+
+        function onScanSuccess(decodedText) {
+            document.getElementById("scan-result").innerText = "QR Code Scanned: " + decodedText;
+            document.getElementById("user-id").value = decodedText;
+            document.getElementById("register-form").style.display = "block";
+            document.getElementById("qr-reader").style.display = "none"; // Hide scanner
+        }
+
+        function initializeScanner() {
+            qrCodeScanner = new Html5Qrcode("qr-reader");
+            qrCodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 180, height: 180 } },
+                onScanSuccess
+            );
+        }
+
+        function previewImage() {
+            const file = document.getElementById("image").files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const imgElement = document.getElementById("preview-img");
+                imgElement.src = e.target.result;
+                imgElement.style.display = "block"; 
+            };
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.getElementById("register-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const formData = {
+                id: document.getElementById("user-id").value,
+                name: document.getElementById("name").value,
+                grade: document.getElementById("grade").value,
+                section: document.getElementById("section").value,
+                mobile_num: document.getElementById("mobile_num").value,
+                image: document.getElementById("preview-img").src || "" // If no image, set blank
+            };
+
+            fetch("http://localhost:3000/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error:", error));
+        });
+
+        initializeScanner();
+    </script>
+</body>
+</html>

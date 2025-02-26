@@ -44,9 +44,8 @@ main {
   /* background: url("assets/bg.jpeg") no-repeat center center fixed; */
   background-image: linear-gradient(
     45deg,
-    #4a99e3 0%,
-    #5778ff 46%,
-    #006eff 100%
+    #0066ff22 0%,
+    #0095ff21 46%
   );
   background-size: 100% 100%;
   width: 100vw; /* Full viewport width */
@@ -60,8 +59,8 @@ main {
   width: 70%;
   height: 70%;
   max-width: 1000px;
-  background: rgba(255, 255, 255, 0.05); /* Even more transparent white */
-  backdrop-filter: blur(15px) saturate(150%); /* Maintain blur and saturation, but adjust saturation */
+  background: rgb(255, 255, 255);
+  backdrop-filter: blur(15px) saturate(150%);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.2); /* More subtle border */
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* Softer, subtle shadow */
@@ -69,15 +68,25 @@ main {
   gap: 30px;
   overflow: hidden;
 
-  outline: 3px solid white; /* Adds a white outline */
+  outline: 10px solid rgb(0, 0, 0);
   outline-offset: 4px; /* Creates space between the border and outline */
+}
+
+#default-result {
+  background-color: #fff;
+  font-size: 1.2em;
+  color: rgba(0, 0, 0, 0.5); /* Subtle text */
+  width: 100%;
+  padding: 0 15px;
+  font-size: 1.5em;
 }
 
 /* Camera container */
 #reader {
   position: center;
-  width: 70%; /* Camera takes up 60% of the width */
+  width: 100%; /* Camera takes up 60% of the width */
   height: 100%;
+  overflow: hidden;
 }
 
 /* Status Notification */
@@ -101,19 +110,27 @@ main {
   width: 35%;
   padding: 20px;
   text-align: center;
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 1.2em;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: url('assets/SacredHi.png') center/100% 100% no-repeat; /* Your background image */
   backdrop-filter: blur(10px);
-  /* border-radius: 15px; */
-  /* border: 1px solid rgba(255, 255, 255, 0.2); */
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-  height: 100%; /* Prevent resizing */
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
+  position: relative; /* Ensures child elements are positioned relative to this */
+  border: 5px solid rgb(1, 0, 0); /* More subtle border */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); /* Softer, subtle shadow */
+}
+
+/* Logged In Text */
+.login-time {
+  font-size: 0.8em;
+  color: white;
+  margin-top: 10px;
 }
 
 /* User Info Layout */
@@ -125,22 +142,30 @@ main {
 }
 
 .user-image {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  margin-bottom: 15px;
+  width: 100px;
+  height: 100px;
+  border-radius: 10%;
+  margin-bottom: 10px;
   color: white;
 }
 
 .user-name {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  padding: 0 15px;
   font-size: 1.5em;
-  margin: 5px 0;
 }
 
-.user-grade,
-.user-section {
-  font-size: 1.1em;
-  margin: 5px 0;
+.user-grade-section {
+  background-color: darkred;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-top: 5px;
+  padding: 0 10px;
 }
 
 video {
@@ -210,7 +235,7 @@ video {
   #reader {
     width: 50%; /* Adjust camera width */
     height: auto;
-    aspect-ratio: 1 / 1; /* Keep the camera square */
+    /* aspect-ratio: 1 / 1; Keep the camera square */
   }
 
   #result {
@@ -261,7 +286,7 @@ video {
   cursor: pointer;
   transition: all 0.3s ease;
   
-  outline: 3px solid white; /* Adds a white outline */
+  outline: 5px solid rgb(0, 0, 0); /* Adds a white outline */
   outline-offset: 4px; /* Creates space between the border and outline */
 }
 

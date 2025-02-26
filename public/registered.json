@@ -4,7 +4,15 @@
     "name": "Jullan Carl J. Maglinte",
     "grade": "12",
     "section": "St. John Paul II",
-    "registered": true,
+    "mobile_num": "",
+    "image": ""
+  },
+  {
+    "id": "WIFI:S:CRUZCOMM24468_Fibr;T:WPA;P:CTCIFTTH24468C;H:false;;",
+    "name": "Jullan Carl J. Maglinte",
+    "grade": "12",
+    "section": "St. John Paul II",
+    "mobile_num": "",
     "image": ""
   },
   {
@@ -12,7 +20,15 @@
     "name": "Janiela J. Maglinte",
     "grade": "9",
     "section": "St. Margaret Mary",
-    "registered": true,
-    "image": "https://via.placeholder.com/150?text=Janiela+Maglinte"
+    "mobile_num": "",
+    "image": ""
+  },
+  {
+    "id": "a1e0b4b8-10a1-46c6-8907-72de4cc539ba",
+    "name": "Yan Maglinte",
+    "grade": "10",
+    "section": "St. Lorenzo Ruiz",
+    "mobile_num": "09510898845",
+    "image": ""
   }
 ]
