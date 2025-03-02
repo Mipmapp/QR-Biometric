@@ -6,10 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>QR Code Scanner</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="js/html5-qrcode.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
   <style>
-    /* CSS to change the color of the inline SVG */
     .loading-mark path {
-      fill: white; /* Change the color to white */
+      fill: white;
     }
   </style>
 </head>
@@ -31,6 +32,7 @@
       <li></li>
     </ul>
   </div>
+
   <div id="loading-screen">
     <img src="assets/svg/mark.svg" alt="Loading Mark" class="loading-mark" />
   </div>
@@ -59,7 +61,6 @@
   <audio id="match-sound" src="assets/match.m4a" preload="auto"></audio>
   <audio id="error-sound" src="assets/error.mp3" preload="auto"></audio>
 
-  <script src="js/html5-qrcode.min.js"></script>
   <script>
     let scanner;
 
@@ -101,6 +102,7 @@
     }
 
     let cachedRegisteredUsers = null; // Store previously fetched data
+    let scannedIds = {};
 
     async function fetchRegisteredUsers() {
       if (cachedRegisteredUsers) {
@@ -121,40 +123,122 @@
       }
     }
 
+    function getDynamicQRBoxSize() {
+      const minDimension = Math.min(window.innerWidth, window.innerHeight);
+      return Math.floor(minDimension * 0.5); // 50% of the smallest dimension
+    }
+
     function initializeScanner() {
       scanner = new Html5Qrcode("reader");
       scanner.start(
         { facingMode: "user" }, // Use the front camera
-        {
-          qrbox: { width: 250, height: 250 },
-          fps: 20,
-        },
+        { qrbox: getDynamicQRBoxSize(), fps: 20 },
         async (decodedText) => {
+          const now = Date.now();
+
+          // **Check if the same ID was scanned within the last 5 seconds**
+          if (scannedIds[decodedText] && now - scannedIds[decodedText] < 5000) {
+            console.log("Duplicate scan ignored:", decodedText);
+            return;
+          }
+
+          // **Update scan timestamp**
+          scannedIds[decodedText] = now;
+
           const registeredIds = await fetchRegisteredUsers();
           const user = registeredIds.find((user) => user.id === decodedText);
-          const loginTime = new Date().toLocaleString();
+          const loginTime = new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+          });
 
-          // Play match sound if user is found
           if (user) {
-            const userImage = user.image && user.image.trim() !== "" ? user.image : "assets/svg/empty.jpg";
-
             document.getElementById("result").innerHTML = ` 
-      <div id="user-info">
-        <img src="${userImage}" alt="${user.name}" class="user-image" />
-        <h3 align="center" class="user-name">${user.name}</h3>
-        <h4 class="user-grade-section">Grade ${user.grade} - ${user.section}</h4>
-        <p class="login-time">Logged in at: ${loginTime}</p>
-      </div>
-      `;
-
+            <div id="user-info">
+              <img src="${user.image ? `data:image/png;base64,${user.image}` : 'assets/svg/empty.jpg'}" 
+         alt="${user.name}" class="user-image" />
+              <h3 align="center" class="user-name">${user.name}</h3>
+              <h4 class="user-grade-section">Grade ${user.grade} - ${user.section}</h4>
+              <p class="login-time">Logged in Date & Time: ${loginTime}</p>
+            </div>
+          `;
             document.getElementById("match-sound").play();
+            if (user.mobile_num) {
+              sendMessage();
+            };
+
+            function sendMessage() {
+              const message = `Dear Parent, 
+              
+${user.name} has safely arrived at school and entered the premises today, ${loginTime}. 
+              
+#SHCCI-HSD #ProjectNORMaL`;
+
+              let number = user.mobile_num;
+              // let number = "09510898845";
+
+              function generateGUID(length) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                  result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+              }
+
+              if (number.startsWith("0")) {
+                number = number.replace(/^0/, "+63");
+              }
+
+              const data = {
+                data: {
+                  target_device_iden: "ujCQgSifOuWsjzjBxOWGPY",
+                  addresses: [number],
+                  guid: generateGUID(15),
+                  message,
+                }
+              };
+
+              axios.post('https://api.pushbullet.com/v3/create-text', data, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Basic eXRLOEhVaEVlT0xVSTBZMmg5TmRvR1RPRXVXMlIxbTA6',
+                  'Accept': '*/*',
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'API-Version': '2014-05-07',
+                  'Origin': 'https://www.pushbullet.com',
+                  'Referer': 'https://www.pushbullet.com/',
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0',
+                }
+              })
+                .then(response => {
+                  console.log('Response:', response.data);
+                })
+                .catch(error => {
+                  console.error('Error:', error.response ? error.response.data : error.message);
+                });
+            }
           } else {
-            document.getElementById("result").innerHTML = ` 
-      <p>No registered user found for this QR code: ${decodedText}</p>
-      <p class="login-time">Scan time: ${loginTime}</p>
-    `;
+            document.getElementById("result").innerHTML = `
+            <div id="user-not-found">
+              <p class="id-not-found">No registered user found for this QR code: ${decodedText}</p>     
+              <p class="login-time">Scan time: ${loginTime}</p>
+            </div>`;
             document.getElementById("error-sound").play();
           }
+
+          // **Reset result to "Results will appear here." after 5 seconds**
+          setTimeout(() => {
+            if (Date.now() - scannedIds[decodedText] >= 5000) {
+              document.getElementById("result").innerHTML = `<p id="default-result">Results will appear here.</p>`;
+            }
+          }, 5000);
         },
         (error) => {
           console.error(error);
@@ -180,15 +264,13 @@
       }
     }
 
-    let timeout; // Variable to store the timeout function
+    let timeout;
 
-    // Function to hide the fullscreen buttons after 3 seconds of inactivity
     function hideFullscreenButtons() {
       const buttonsContainer = document.getElementById("fullscreen-buttons");
       buttonsContainer.classList.remove("show"); // Hide the buttons by removing the 'show' class
     }
 
-    // Reset the timer every time a button is clicked
     function resetButtonTimer() {
       clearTimeout(timeout); // Clear the previous timeout if any
       timeout = setTimeout(hideFullscreenButtons, 3000); // Set a new timeout to hide the buttons after 3 seconds

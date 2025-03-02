@@ -1,149 +1,110 @@
-/* Apply a smooth glassmorphism background */
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
 body {
-    background: linear-gradient(45deg, #4a0e0e, #7a0c0c, #9b1a1a);
-    color: white;
-    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    width: 100vw;
-    padding: 20px;
-    overflow: hidden;
+    background: linear-gradient(135deg, rgb(87, 1, 1), rgb(150, 20, 20), rgb(72, 6, 6));
+    background-size: 300% 300%;
+    animation: moveGradient 6s infinite alternate;
+    backdrop-filter: blur(10px);
 }
 
-/* Main container with glassmorphism effect */
-.container {
-    background: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
-    backdrop-filter: blur(12px); /* Blur effect */
-    -webkit-backdrop-filter: blur(12px);
-    color: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+@keyframes moveGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* QR Scanner Container */
+#qr-reader {
+    background: linear-gradient(to top, rgba(111, 111, 111), rgb(210, 210, 210));
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     text-align: center;
-    width: 500px;
-    height: 500px;
-    overflow-y: auto; /* Allow scrolling inside */
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    display: block; /* Ensure it's not hidden */
+}
+
+/* Registration Form Container */
+#register-form {
+    /* display: none; */
+    background:linear-gradient(to top, rgba(111, 111, 111), rgb(210, 210, 210));
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-align: center;
+    width: 350px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    position: absolute;
 }
 
-/* Scrollbar Styling */
-.container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.container::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-
-.container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 10px;
-}
-
-.container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.7);
-}
-
-/* Title */
 h2 {
-    font-size: 28px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+/* User Type Selection */
+.user-type-selection {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.user-type-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
     color: white;
+    transition: 0.3s;
+}
+
+.user-type-btn.active {
+    background: white;
+    color: black;
+    font-weight: bold;
 }
 
 /* Form Group */
 .form-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    width: 100%;
+    margin-bottom: 15px;
+    text-align: left;
 }
 
-/* Labels */
-label {
-    font-weight: bold;
+.form-group label {
+    display: block;
     font-size: 14px;
-    margin-bottom: 6px;
-    color: white;
+    margin-bottom: 5px;
 }
 
-/* Input Fields */
-input, select {
+.form-group input, .form-group select {
     width: 100%;
-    padding: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    font-size: 16px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    transition: 0.3s ease-in-out;
-    box-sizing: border-box;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-/* Input Focus */
-input:focus, select:focus {
-    border-color: #ff5c5c;
-    outline: none;
-    box-shadow: 0px 0px 10px rgba(255, 92, 92, 0.5);
-}
-
-/* QR Code Scanner Box */
-.qr-box {
-    width: 250px;
-    height: 250px;
-    border: 3px dashed rgba(255, 255, 255, 0.6);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto 20px;
-}
-
-/* Buttons */
-button {
-    width: 100%;
-    padding: 14px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    margin-top: 10px;
-    transition: background 0.3s, transform 0.2s;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-}
-
-/* Button Hover & Active */
-button:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-button:active {
-    transform: scale(0.96);
-}
-
-/* File Input */
-input[type="file"] {
     padding: 8px;
-    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
-/* Image Preview */
+/* Image Upload */
 #image-preview {
     margin-top: 10px;
     text-align: center;
@@ -152,42 +113,226 @@ input[type="file"] {
 #preview-img {
     max-width: 100%;
     height: auto;
-    display: none;
     border-radius: 10px;
+}
+
+/* Submit Button */
+.btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: white;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: lightgray;
+}
+
+select {
+    color: black; /* Set text color */
+    background-color: white; /* Set background color */
+    border: 1px solid #ccc; /* Add a subtle border */
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* Style options inside the dropdown */
+select option {
+    color: black; /* Ensure options are visible */
+    background-color: white; /* Background for options */
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(111, 111, 111);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+    margin-bottom: 10px;
+}
+
+.modal-content button {
+    margin: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#edit-btn {
+    background: white;
+    color: black;
+}
+
+#retry-btn {
+    background: red;
+    color: white;
+}
+
+/* QR Code ID Input Container */
+.qr-id-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1); /* Glassmorphism */
     border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+    backdrop-filter: blur(10px);
+    max-width: 300px;
+    margin: 10px 0;
 }
 
-/* Slide-Up Animation */
-@keyframes slideUp {
-    0% {
-        transform: translateY(100px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+/* QR ID Input */
+#user-id {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    padding: 5px;
 }
 
-/* Apply the animation only to the second container */
-.container:nth-of-type(2) {
-    animation: slideUp 0.6s ease-out forwards;
+/* Copy Button */
+.copy-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s ease;
+    color: white;
 }
 
-/* Gravity Effect */
-@keyframes gravityPull {
-    0% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-15px);
-    }
-    100% {
-        transform: translateY(0);
-    }
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
 }
 
-/* Apply gravity effect when at bottom */
-.container.gravity {
-    animation: gravityPull 0.3s ease-in-out;
+.copy-btn:active {
+    transform: scale(0.9);
+}
+
+/* Modern Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    font-weight: bold;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #f44336, #D32F2F);
+}
+
+.notification .icon {
+    font-size: 20px;
+}
+
+.floating-menu {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+}
+
+.menu-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.menu-options {
+    display: none;
+    flex-direction: column;
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.menu-options.show-menu {
+    display: flex;
+}
+
+.menu-options button {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.menu-options button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
 }

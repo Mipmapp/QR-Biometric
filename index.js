@@ -1,60 +1,83 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const multer = require("multer");
 
 const app = express();
 const PORT = 3000;
 
+// Middleware
 app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json({ limit: "5mb" })); // Allow image data
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (_, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+// Multer for image uploads (stores in "public/uploads/")
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, "public/uploads");
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true }); // Ensure the folder exists
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
 });
+const upload = multer({ storage });
 
 const DATA_FILE = path.join(__dirname, "public/registered.json");
 
-// Serve the register page
-app.get("/register", (_, res) => {
-    res.sendFile(path.join(__dirname, "public/register.html"));
-});
+// Ensure `registered.json` exists
+if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, "[]"); // Initialize with empty array
+}
 
-// Register new user
-app.post("/register", (req, res) => {
-    const { name, grade, section, mobile_num, image } = req.body;
+// Serve main and register pages
+app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
+app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
 
-    if (!name || !grade || !section || !mobile_num) {
-        return res.status(400).json({ message: "All fields are required!" });
+// Handle user registration
+app.post("/register", upload.single("image"), (req, res) => {
+    console.log("Received form data:", req.body); // Debugging
+    console.log("Received file:", req.file); // Debugging
+
+    const { id, name, grade, section, mobile_num } = req.body;
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Save image path
+
+    if (!id || !name || !mobile_num) {
+        return res.status(400).json({ message: "ID, Name, and Mobile Number are required!" });
     }
 
-    const newUser = {
-        id: crypto.randomUUID(),
-        name,
-        grade,
-        section,
-        mobile_num,
-        image: image || "",
-    };
-
-    console.log(newUser)
-
-    // Read existing data
     fs.readFile(DATA_FILE, "utf8", (err, data) => {
         if (err) return res.status(500).json({ message: "Error reading data" });
 
-        let users = JSON.parse(data);
-        users.push(newUser);
+        let users = [];
+        try {
+            users = JSON.parse(data);
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            return res.status(500).json({ message: "Invalid JSON format" });
+        }
 
-        // Save updated data
+        const existingIndex = users.findIndex(user => user.id === id);
+        let message = "User registered successfully!";
+
+        if (existingIndex !== -1) {
+            users[existingIndex] = { id, name, grade, section, mobile_num, image: imagePath };
+            message = "User details updated successfully!";
+        } else {
+            users.push({ id, name, grade, section, mobile_num, image: imagePath });
+        }
+
         fs.writeFile(DATA_FILE, JSON.stringify(users, null, 2), (err) => {
             if (err) return res.status(500).json({ message: "Error saving data" });
-            res.json({ message: "User registered successfully!" });
+            res.json({ message, success: true });
         });
     });
 });
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running at http://localhost:${PORT}`);
 });
-
-//https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js
