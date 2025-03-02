@@ -35,17 +35,16 @@ if (!fs.existsSync(DATA_FILE)) {
 
 // Serve main and register pages
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
-app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
+app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/register.html")));
 
 // Handle user registration
 app.post("/register", upload.single("image"), (req, res) => {
     console.log("Received form data:", req.body); // Debugging
-    console.log("Received file:", req.file); // Debugging
 
-    const { id, name, grade, section, mobile_num } = req.body;
+    const { id, name, grade, section, mobile_num, userType } = req.body;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Save image path
 
-    if (!id || !name || !mobile_num) {
+    if (userType === "student" && (!id || !name || !mobile_num)) {
         return res.status(400).json({ message: "ID, Name, and Mobile Number are required!" });
     }
 

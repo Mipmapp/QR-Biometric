@@ -78,6 +78,16 @@ main {
   100% { top: 100%; }
 }
 
+.logo {
+  display: block;
+  width: 150px; /* Adjust size */
+  height: 150px; /* Make sure width and height are the same */
+  border-radius: 50%; /* This makes it round */
+  object-fit: cover; /* Ensures the image fills the circle */
+  margin: 20px auto; /* Center the logo */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow */
+}
+
 
 #default-result {
   background-color: #fff;

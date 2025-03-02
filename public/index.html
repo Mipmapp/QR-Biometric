@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>QR Code Scanner</title>
+  <title>Scan</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="styles.css" />
   <script src="js/html5-qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" defer></script>
@@ -160,7 +161,7 @@
           if (user) {
             document.getElementById("result").innerHTML = ` 
             <div id="user-info">
-              <img src="${user.image ? `data:image/png;base64,${user.image}` : 'assets/svg/empty.jpg'}" 
+              <img src="${user.image ? `${window.location.origin}${user.image}` : 'assets/svg/empty.jpg'}" 
          alt="${user.name}" class="user-image" />
               <h3 align="center" class="user-name">${user.name}</h3>
               <h4 class="user-grade-section">Grade ${user.grade} - ${user.section}</h4>
@@ -175,7 +176,7 @@
             function sendMessage() {
               const message = `Dear Parent, 
               
-${user.name} has safely arrived at school and entered the premises today, ${loginTime}. 
+${user.name} has arrived at school and entered the premises today, ${loginTime}. 
               
 #SHCCI-HSD #ProjectNORMaL`;
 

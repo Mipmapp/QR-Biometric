@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration</title>
+    <title>Registration</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="register.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -20,14 +21,22 @@
         </div>
     </div>
 
-    <div id="qr-reader">
-        <h2>Scan QR Code</h2>
-        <div id="qr-box"></div>
-        <p id="scan-result"></p>
+    <div class="qr-container">
+        <div id="qr-text">
+            <img src="assets/logo.png" alt="Logo" class="qr-logo">
+            <p id="animated-text">Place your QR code inside the scanner to continue.</p>
+        </div>
+
+        <div id="qr-reader">
+            <h2>Scan QR Code</h2>
+            <div id="qr-box"></div>
+            <p id="scan-result"></p><br>
+        </div>
     </div>
 
     <div id="register-form" style="display: none;">
         <h2>Register User</h2>
+
         <form id="user-form">
             <input type="hidden" id="edit-mode" value="false">
             <div class="qr-id-container">
@@ -35,47 +44,50 @@
                 <button type="button" onclick="copyQRID()" class="copy-btn">ID</button>
             </div>
 
-            <div class="user-type-selection">
-                <button type="button" id="student-btn" class="user-type-btn active" data-type="student">Student</button>
-                <button type="button" id="faculty-btn" class="user-type-btn" data-type="faculty">Faculty</button>
-                <input type="hidden" id="userType" name="userType" value="student">
-            </div>
-
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-
-            <div id="student-fields">
-                <div class="form-group">
-                    <label for="grade">Grade</label>
-                    <select id="grade" name="grade">
-                        <option value="">Select Grade</option>
-                        <option value="7">Grade 7</option>
-                        <option value="8">Grade 8</option>
-                        <option value="9">Grade 9</option>
-                        <option value="10">Grade 10</option>
-                        <option value="11">Grade 11</option>
-                        <option value="12">Grade 12</option>
-                    </select>
+            <div class="form-left">
+                <div class="user-type-selection">
+                    <button type="button" id="student-btn" class="user-type-btn active"
+                        data-type="student">Student</button>
+                    <button type="button" id="faculty-btn" class="user-type-btn" data-type="faculty">Faculty</button>
+                    <input type="hidden" id="userType" name="userType" value="student">
                 </div>
+
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div id="student-fields">
+                    <div class="form-group">
+                        <label for="grade">Grade</label>
+                        <select id="grade" name="grade">
+                            <option value="">Select Grade</option>
+                            <option value="7">Grade 7</option>
+                            <option value="8">Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-right">
                 <div class="form-group">
                     <label for="section">Section</label>
                     <input type="text" id="section" name="section">
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="mobile_num">Mobile Number</label>
-                <input type="text" id="mobile_num" name="mobile_num" required>
-            </div>
+                <div class="form-group">
+                    <label for="mobile_num">Mobile Number</label>
+                    <input type="tel" id="mobile_num" name="mobile_num" required pattern="\d{10,}"
+                        placeholder="Enter a valid number">
+                </div>
 
-            <div class="form-group">
-                <label for="image">Upload Image</label>
-                <input type="file" id="image" name="image" accept="image/*" onchange="previewImage()">
-                <div id="image-preview">
-                    <img id="preview-img" src="" alt="Image Preview"
-                        style="max-width: 100%; height: auto; display: none;">
+                <div class="form-group">
+                    <label for="image">Upload Image</label>
+                    <input type="file" id="image" name="image" accept="image/*" onchange="previewImage()">
                 </div>
             </div>
 
@@ -83,10 +95,78 @@
         </form>
     </div>
 
+    <div id="image-preview-container">
+        <button class="close-btn">
+            <img src="assets/svg/close.svg" alt="Close">
+        </button>
+        <h3>Image Preview</h3>
+        <div id="image-preview">
+            <img id="preview-img" src="your-image.png">
+        </div>
+    </div>
+
     <!-- Notification Container -->
     <div id="notification-container"></div>
 
     <script>
+        function removeImage() {
+            document.getElementById("preview-img").src = "";
+            document.getElementById("preview-img").style.display = "none";
+            document.getElementById("image-preview-container").style.display = "none";
+            document.getElementById("image").value = ""; // Reset file input
+        }
+
+        function showNotification(message, type) {
+            const container = document.getElementById("notification-container");
+            if (!container) return;
+
+            // Create the notification element
+            const notification = document.createElement("div");
+            notification.classList.add("notification", type); // "success" or "error"
+            notification.textContent = message;
+
+            // Add the notification to the container
+            container.appendChild(notification);
+
+            // Remove the notification after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function previewImage() {
+            const fileInput = document.getElementById("image");
+            const previewImg = document.getElementById("preview-img");
+            const previewContainer = document.getElementById("image-preview-container");
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = "block"; // Show the image
+                    previewContainer.style.display = "block"; // Ensure the preview container is visible
+                };
+
+                reader.readAsDataURL(fileInput.files[0]); // Convert image to base64
+            }
+        }
+
+        function toggleFields(type) {
+            const gradeField = document.getElementById("student-fields");
+            const sectionField = document.getElementById("section").parentNode; // Get section parent div
+
+            if (type === "faculty") {
+                gradeField.style.display = "none"; // Hide Grade for Faculty
+                sectionField.style.display = "none";  // Hide Section for Faculty
+            } else {
+                gradeField.style.display = "block";
+                sectionField.style.display = "block";
+            }
+
+            document.getElementById("userType").value = type; // Update hidden input value
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const studentBtn = document.getElementById("student-btn");
             const facultyBtn = document.getElementById("faculty-btn");
@@ -94,11 +174,6 @@
             const userTypeInput = document.getElementById("userType");
             const form = document.getElementById("user-form");
             let html5QrCode;
-
-            function toggleFields(type) {
-                studentFields.style.display = type === "student" ? "block" : "none";
-                userTypeInput.value = type;
-            }
 
             studentBtn.addEventListener("click", function () {
                 studentBtn.classList.add("active");
@@ -112,9 +187,21 @@
                 toggleFields("faculty");
             });
 
+            const closeButton = document.querySelector(".close-btn");
+
+            if (closeButton) {
+                closeButton.addEventListener("click", removeImage);
+            }
+
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
                 const formData = new FormData(form);
+
+                // Debugging: Log form data to check if "id" is included
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);  // Should show 'id' and its value
+                }
+
                 fetch("/register", {
                     method: "POST",
                     body: formData
@@ -124,7 +211,6 @@
                         if (data.message) {
                             showNotification(data.message, "success");
                             form.reset();
-                            document.getElementById("preview-img").style.display = "none";
                         }
                     })
                     .catch(() => {
@@ -132,10 +218,104 @@
                     });
             });
 
+            function showRegisterForm() {
+                const registerForm = document.getElementById("register-form");
+                registerForm.style.display = "block";
+                setTimeout(() => {
+                    registerForm.classList.add("show");
+                }, 10);
+            }
+
+            function showPopup(userData) {
+                // Create the modal HTML
+                const modalHTML = `
+        <div id="custom-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h2>User Already Registered</h2>
+                <p>The ID is already in the system. Do you want to edit the existing record?</p>
+                <div class="modal-buttons">
+                    <button id="edit-btn" class="modal-button edit">Edit</button>
+                    <button id="try-again-btn" class="modal-button cancel">Try Again</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+                // Append to body
+                document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+                // Add animation
+                setTimeout(() => {
+                    document.getElementById("custom-modal").classList.add("show");
+                }, 10);
+
+                // Handle Edit button
+                document.getElementById("edit-btn").addEventListener("click", function () {
+                    document.getElementById("name").value = userData.name || "";
+                    document.getElementById("section").value = userData.section || "";
+                    document.getElementById("mobile_num").value = userData.mobile_num || "";
+
+                    if (userData.grade) {
+                        document.getElementById("student-btn").click();
+                        document.getElementById("grade").value = userData.grade;
+                    } else {
+                        document.getElementById("faculty-btn").click();
+                    }
+
+                    closePopup();
+                });
+
+                // Handle Try Again button
+                document.getElementById("try-again-btn").addEventListener("click", function () {
+                    document.getElementById("qr-reader").style.display = "block";
+                    document.getElementById("qr-text").style.display = "block";
+                    document.getElementById("register-form").style.display = "none";
+                    initializeScanner();
+                    closePopup();
+                });
+            }
+
+            function closePopup() {
+                const modal = document.getElementById("custom-modal");
+                if (modal) {
+                    modal.classList.remove("show");
+                    setTimeout(() => modal.remove(), 300);
+                }
+            }
+
             function onScanSuccess(decodedText) {
                 document.getElementById("user-id").value = decodedText;
-                document.getElementById("register-form").style.display = "block";
                 document.getElementById("qr-reader").style.display = "none";
+                document.getElementById("qr-text").style.display = "none";
+
+                fetch('registered.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Find the user in the array
+                        const userData = data.find(user => user.id === decodedText);
+
+                        if (userData) {
+                            showPopup(userData);
+                            // Prefill form with existing data
+                            document.getElementById("name").value = userData.name || "";
+                            document.getElementById("section").value = userData.section || "";
+                            document.getElementById("mobile_num").value = userData.mobile_num || "";
+
+                            if (userData.userType === "faculty") {
+                                document.getElementById("faculty-btn").click();
+                            } else {
+                                document.getElementById("student-btn").click();
+                                document.getElementById("grade").value = userData.grade || "";
+                            }
+                        } else {
+                            showRegisterForm();
+                        }
+                        showRegisterForm();
+                    })
+                    .catch(() => {
+                        showRegisterForm();
+                    });
+
                 if (html5QrCode) html5QrCode.stop();
             }
 
@@ -146,32 +326,44 @@
             initializeScanner();
         });
 
-        function showNotification(message, type = "success") {
-            const notification = document.createElement("div");
-            notification.className = `notification ${type} show`;
-            notification.innerHTML = `<span class="icon">${type === "success" ? "✅" : "❌"}</span> <span>${message}</span>`;
-
-            document.getElementById("notification-container").appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.remove("show");
-                setTimeout(() => notification.remove(), 500);
-            }, 3000);
-        }
-
-        document.getElementById("menu-btn").addEventListener("click", function () {
-            document.getElementById("menu-options").classList.toggle("show-menu");
-        });
-
         function navigateTo(page) {
-            if (page === 'register') {
-                window.location.href = 'register.html';
-            } else if (page === 'documents') {
-                window.location.href = 'documents.html';
-            } else if (page === 'scan') {
-                window.location.href = '/';
+            if (typeof html5QrCode !== "undefined" && html5QrCode !== null) {
+                html5QrCode.stop().then(() => {
+                    window.location.href = `/${page === "scan" ? "" : page}`;
+                }).catch(() => {
+                    window.location.href = `/${page}`;
+                });
+            } else {
+                window.location.href = `/${page === "scan" ? "" : page}`;
             }
         }
+
+        document.getElementById("student-btn").addEventListener("click", function () {
+            this.classList.add("active");
+            document.getElementById("faculty-btn").classList.remove("active");
+            toggleFields("student");
+        });
+
+        document.getElementById("faculty-btn").addEventListener("click", function () {
+            this.classList.add("active");
+            document.getElementById("student-btn").classList.remove("active");
+            toggleFields("faculty");
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuBtn = document.getElementById("menu-btn");
+            const menuOptions = document.getElementById("menu-options");
+
+            menuBtn.addEventListener("click", function () {
+                menuOptions.classList.toggle("show-menu");
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!menuBtn.contains(event.target) && !menuOptions.contains(event.target)) {
+                    menuOptions.classList.remove("show-menu");
+                }
+            });
+        });
     </script>
 </body>
 
