@@ -1,37 +1,11 @@
 [
   {
-    "id": "B93F1521-A680-43F5-8808-542CF33391DC",
-    "name": "Janiela J. Maglinte",
-    "grade": "9",
-    "section": "St. Margaret Mary",
-    "mobile_num": "",
-    "image": ""
-  },
-  {
-    "id": "a1e0b4b8-10a1-46c6-8907-72de4cc539ba",
-    "name": "Yan Maglinte",
-    "grade": "10",
-    "section": "St. Lorenzo Ruiz",
-    "mobile_num": "09510898845",
-    "image": ""
-  },
-  {
     "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
-    "name": "Jullan Carl J. Maglinte",
+    "name": "Mang Juan",
     "grade": "12",
     "section": "St. John Paul II",
+    "userType": "faculty",
     "mobile_num": "09510898845",
-    "image": null
-  },
-  {
-    "id": [
-      "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
-      ""
-    ],
-    "name": "Jullan Carl J. Maglinte",
-    "grade": "12",
-    "section": "St. John Paul II",
-    "mobile_num": "09510898845",
-    "image": null
+    "image": "/uploads/1740956529971-Yan Maglinte.jpg"
   }
 ]

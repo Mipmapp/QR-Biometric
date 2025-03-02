@@ -37,7 +37,7 @@
     <div id="register-form" style="display: none;">
         <h2>Register User</h2>
 
-        <form id="user-form">
+        <form id="user-form" enctype="multipart/form-data">
             <input type="hidden" id="edit-mode" value="false">
             <div class="qr-id-container">
                 <input type="text" id="user-id" name="id" readonly>
@@ -101,7 +101,7 @@
         </button>
         <h3>Image Preview</h3>
         <div id="image-preview">
-            <img id="preview-img" src="your-image.png">
+            <img id="preview-img">
         </div>
     </div>
 
@@ -120,15 +120,12 @@
             const container = document.getElementById("notification-container");
             if (!container) return;
 
-            // Create the notification element
             const notification = document.createElement("div");
-            notification.classList.add("notification", type); // "success" or "error"
+            notification.classList.add("notification", type);
             notification.textContent = message;
 
-            // Add the notification to the container
             container.appendChild(notification);
 
-            // Remove the notification after 3 seconds
             setTimeout(() => {
                 notification.remove();
             }, 3000);
@@ -144,11 +141,12 @@
 
                 reader.onload = function (e) {
                     previewImg.src = e.target.result;
-                    previewImg.style.display = "block"; // Show the image
-                    previewContainer.style.display = "block"; // Ensure the preview container is visible
+                    previewImg.style.display = "block";
+                    previewContainer.style.display = "block";
                 };
 
-                reader.readAsDataURL(fileInput.files[0]); // Convert image to base64
+                console.log("File Selected:", fileInput.files[0]);
+                reader.readAsDataURL(fileInput.files[0]);
             }
         }
 
@@ -195,12 +193,8 @@
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
+                console.log("User Type Selected:", document.getElementById("userType").value); // Debugging
                 const formData = new FormData(form);
-
-                // Debugging: Log form data to check if "id" is included
-                for (let [key, value] of formData.entries()) {
-                    console.log(key, value);  // Should show 'id' and its value
-                }
 
                 fetch("/register", {
                     method: "POST",
@@ -211,10 +205,28 @@
                         if (data.message) {
                             showNotification(data.message, "success");
                             form.reset();
+
+                            // Return to QR Scanning after 2 seconds
+                            setTimeout(() => {
+                                document.getElementById("qr-reader").style.display = "block";
+                                document.getElementById("qr-text").style.display = "block";
+                                document.getElementById("register-form").style.display = "none";
+                                removeImage();
+                                initializeScanner();
+                                form.reset();
+                            }, 2000);
                         }
                     })
                     .catch(() => {
                         showNotification("Registration failed!", "error");
+
+                        setTimeout(() => {
+                            document.getElementById("qr-reader").style.display = "block";
+                            document.getElementById("qr-text").style.display = "block";
+                            document.getElementById("register-form").style.display = "none";
+                            initializeScanner();
+                            removeImage();
+                        }, 2000);
                     });
             });
 
@@ -229,17 +241,17 @@
             function showPopup(userData) {
                 // Create the modal HTML
                 const modalHTML = `
-        <div id="custom-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h2>User Already Registered</h2>
-                <p>The ID is already in the system. Do you want to edit the existing record?</p>
-                <div class="modal-buttons">
-                    <button id="edit-btn" class="modal-button edit">Edit</button>
-                    <button id="try-again-btn" class="modal-button cancel">Try Again</button>
+            <div id="custom-modal" class="modal-overlay">
+                <div class="modal-content">
+                    <h2>User Already Registered</h2>
+                    <p>The ID is already in the system. Do you want to edit the existing record?</p>
+                    <div class="modal-buttons">
+                        <button id="edit-btn" class="modal-button edit">Edit</button>
+                        <button id="try-again-btn" class="modal-button cancel">Try Again</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
                 // Append to body
                 document.body.insertAdjacentHTML("beforeend", modalHTML);
@@ -255,12 +267,13 @@
                     document.getElementById("section").value = userData.section || "";
                     document.getElementById("mobile_num").value = userData.mobile_num || "";
 
-                    if (userData.grade) {
-                        document.getElementById("student-btn").click();
-                        document.getElementById("grade").value = userData.grade;
-                    } else {
+                    if (userData.userType === "faculty") {
                         document.getElementById("faculty-btn").click();
-                    }
+                        document.getElementById("userType").value = "faculty";
+                    } else {
+                        document.getElementById("student-btn").click();
+                        document.getElementById("grade").value = userData.grade || "";
+                    };
 
                     closePopup();
                 });
@@ -303,9 +316,19 @@
 
                             if (userData.userType === "faculty") {
                                 document.getElementById("faculty-btn").click();
+                                document.getElementById("userType").value = "faculty";
                             } else {
                                 document.getElementById("student-btn").click();
                                 document.getElementById("grade").value = userData.grade || "";
+                            }
+
+                            if (userData.image) {
+                                const previewImg = document.getElementById("preview-img");
+                                previewImg.src = userData.image;
+                                previewImg.style.display = "block";
+
+                                const previewContainer = document.getElementById("image-preview-container");
+                                previewContainer.style.display = "block";
                             }
                         } else {
                             showRegisterForm();
@@ -337,18 +360,6 @@
                 window.location.href = `/${page === "scan" ? "" : page}`;
             }
         }
-
-        document.getElementById("student-btn").addEventListener("click", function () {
-            this.classList.add("active");
-            document.getElementById("faculty-btn").classList.remove("active");
-            toggleFields("student");
-        });
-
-        document.getElementById("faculty-btn").addEventListener("click", function () {
-            this.classList.add("active");
-            document.getElementById("student-btn").classList.remove("active");
-            toggleFields("faculty");
-        });
 
         document.addEventListener("DOMContentLoaded", function () {
             const menuBtn = document.getElementById("menu-btn");

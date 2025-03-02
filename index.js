@@ -38,6 +38,10 @@ app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html"))
 app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/register.html")));
 
 // Handle user registration
+const cors = require("cors");
+app.use(cors());
+
+app.use('/registered.json', express.static(DATA_FILE));
 app.post("/register", upload.single("image"), (req, res) => {
     console.log("Received form data:", req.body); // Debugging
 
@@ -50,30 +54,35 @@ app.post("/register", upload.single("image"), (req, res) => {
 
     fs.readFile(DATA_FILE, "utf8", (err, data) => {
         if (err) return res.status(500).json({ message: "Error reading data" });
-
+    
         let users = [];
         try {
-            users = JSON.parse(data);
+            users = data ? JSON.parse(data) : []; // Ensure it doesn't reset to an empty state
         } catch (error) {
             console.error("Error parsing JSON:", error);
             return res.status(500).json({ message: "Invalid JSON format" });
         }
-
+    
         const existingIndex = users.findIndex(user => user.id === id);
         let message = "User registered successfully!";
-
+    
         if (existingIndex !== -1) {
-            users[existingIndex] = { id, name, grade, section, mobile_num, image: imagePath };
+            users[existingIndex] = { id, name, grade, section, userType, mobile_num, image: imagePath };
             message = "User details updated successfully!";
         } else {
-            users.push({ id, name, grade, section, mobile_num, image: imagePath });
+            users.push({ id, name, grade, section, userType, mobile_num, image: imagePath });
         }
-
+    
+        console.log("Updated Users List:", users);
+    
         fs.writeFile(DATA_FILE, JSON.stringify(users, null, 2), (err) => {
-            if (err) return res.status(500).json({ message: "Error saving data" });
+            if (err) {
+                console.error("Error saving data:", err);
+                return res.status(500).json({ message: "Error saving data" });
+            }
             res.json({ message, success: true });
-        });
-    });
+        });        
+    });    
 });
 
 // Start the server
