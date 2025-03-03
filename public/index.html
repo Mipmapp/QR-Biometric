@@ -111,7 +111,7 @@
       }
 
       try {
-        const response = await fetch("registered.json");
+        const response = await fetch(`registered.json?t=${new Date().getTime()}`);
         cachedRegisteredUsers = await response.json();
         return cachedRegisteredUsers;
       } catch (error) {

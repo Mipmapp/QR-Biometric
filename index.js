@@ -36,6 +36,7 @@ if (!fs.existsSync(DATA_FILE)) {
 // Serve main and register pages
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
 app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/register.html")));
+app.get("/documents", (_, res) => res.sendFile(path.join(__dirname, "public/document.html")));
 
 // Handle user registration
 const cors = require("cors");

@@ -1,11 +1,11 @@
-[
-  {
-    "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
-    "name": "Mang Juan",
-    "grade": "12",
-    "section": "St. John Paul II",
-    "userType": "faculty",
-    "mobile_num": "09510898845",
-    "image": "/uploads/1740956529971-Yan Maglinte.jpg"
-  }
-]
+  [
+    {
+      "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
+      "name": "Jullan Carl J. Maglinte",
+      "grade": "12",
+      "section": "St. John Paul II",
+      "userType": "student",
+      "mobile_num": "09510898845",
+      "image": "/uploads/1740956529971-Yan Maglinte.jpg"
+    }
+  ]

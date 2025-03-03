@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="document.css">
+</head>
+<body>
+    <div class="menu-button" onclick="toggleMenu()">☰</div>
+    <div class="sidebar" id="sidebar">
+        <button onclick="showUsers('students')">Students</button>
+        <button onclick="showUsers('faculty')">Faculty</button>
+    </div>
+    
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="searchInput" onkeyup="searchUsers()" placeholder="Search users...">
+            <button onclick="addFolder()">+ Add Folder</button>
+        </div>
+        <div id="user-list"></div>
+    </div>
+
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <img id="user-image" src="" alt="User Image">
+            <input type="text" id="edit-name">
+            <input type="text" id="edit-grade">
+            <input type="text" id="edit-section">
+            <button onclick="saveEdit()">Save</button>
+            <button onclick="deleteUser()">Delete</button>
+        </div>
+    </div>
+
+    <script src="document.js"></script>
+</body>
+</html>
