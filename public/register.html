@@ -204,16 +204,16 @@
                     .then(data => {
                         if (data.message) {
                             showNotification(data.message, "success");
-                            form.reset();
 
                             // Return to QR Scanning after 2 seconds
                             setTimeout(() => {
                                 document.getElementById("qr-reader").style.display = "block";
                                 document.getElementById("qr-text").style.display = "block";
                                 document.getElementById("register-form").style.display = "none";
+                                document.getElementById("image-preview-container").style.display = "none";
+                                form.reset();
                                 removeImage();
                                 initializeScanner();
-                                form.reset();
                             }, 2000);
                         }
                     })
@@ -283,6 +283,8 @@
                     document.getElementById("qr-reader").style.display = "block";
                     document.getElementById("qr-text").style.display = "block";
                     document.getElementById("register-form").style.display = "none";
+                    document.getElementById("image-preview-container").style.display = "none";
+                    form.reset();
                     initializeScanner();
                     closePopup();
                 });
@@ -344,7 +346,7 @@
 
             function initializeScanner() {
                 html5QrCode = new Html5Qrcode("qr-box");
-                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+                html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, onScanSuccess);
             }
             initializeScanner();
         });

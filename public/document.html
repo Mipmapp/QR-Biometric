@@ -1,38 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>File Manager</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="document.css">
 </head>
+
 <body>
-    <div class="menu-button" onclick="toggleMenu()">☰</div>
-    <div class="sidebar" id="sidebar">
-        <button onclick="showUsers('students')">Students</button>
-        <button onclick="showUsers('faculty')">Faculty</button>
-    </div>
-    
     <div class="container">
-        <div class="search-container">
-            <input type="text" id="searchInput" onkeyup="searchUsers()" placeholder="Search users...">
-            <button onclick="addFolder()">+ Add Folder</button>
+        <h1>File Manager</h1>
+        <div class="controls">
+            <div class="button-group">
+                <button id="studentsBtn" class="toggle-btn active">Students</button>
+                <button id="facultyBtn" class="toggle-btn">Faculty</button>
+            </div>
+            <div class="filter-container">
+                <label for="filterGrade">Filter by Grade:</label>
+                <select id="gradeFilter">
+                    <option value="all">All Grades</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                </select>
+            </div>
         </div>
-        <div id="user-list"></div>
+
+        <!-- User List -->
+        <div class="user-list" id="userList">
+            <!-- User cards will be dynamically added here -->
+        </div>
     </div>
 
-    <div id="user-modal" class="modal">
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal hidden">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <img id="user-image" src="" alt="User Image">
-            <input type="text" id="edit-name">
-            <input type="text" id="edit-grade">
-            <input type="text" id="edit-section">
-            <button onclick="saveEdit()">Save</button>
-            <button onclick="deleteUser()">Delete</button>
+            <span id="closeModal" class="close">&times;</span>
+            <h2>Edit User</h2>
+            <img id="previewImage" src="" alt="Image Preview"
+                style="display:none; width:120px; height:120px; border-radius: 10px; margin-bottom: 10px;">
+
+            <label for="editGrade" id="gradeLabel">Grade:</label>
+            <select id="editGrade">
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+            </select>
+
+            <label for="editSection">Section:</label>
+            <input type="text" id="editSection">
+
+            <input type="text" id="editName" placeholder="Name">
+            <input type="text" id="editMobile" placeholder="Mobile Number">
+
+            <label for="editImage">Update Image:</label>
+            <input type="file" id="editImage">
+
+            <button id="saveBtn">Save</button>
+            <button id="cancelBtn">Cancel</button>
         </div>
     </div>
 
     <script src="document.js"></script>
 </body>
+
 </html>

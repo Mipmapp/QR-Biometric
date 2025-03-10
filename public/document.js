@@ -1,134 +1,190 @@
-let users = [];
-let selectedUser = null;
+const userList = document.getElementById('userList');
+const editName = document.getElementById('editName');
+const editMobile = document.getElementById('editMobile');
+const editGrade = document.getElementById('editGrade');
+const editSection = document.getElementById('editSection');
+const editImage = document.getElementById('editImage');
+const saveBtn = document.getElementById('saveBtn');
+const gradeFilter = document.getElementById("gradeFilter");
+const studentsBtn = document.getElementById('studentsBtn');
+const facultyBtn = document.getElementById('facultyBtn');
+const previewImage = document.getElementById('previewImage');
 
-// Toggle menu
-function toggleMenu() {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.style.left = sidebar.style.left === "0px" ? "-200px" : "0px";
+const editModal = document.getElementById("editModal");
+const closeModal = document.getElementById("closeModal");
+const cancelBtn = document.getElementById("cancelBtn");
+
+
+let currentUserId = null;
+let currentUserType = 'student';
+let usersData = [];
+
+// Load users on page load
+window.addEventListener("DOMContentLoaded", () => {
+    gradeFilter.addEventListener("change", displayUsers);
+    setActiveButton(studentsBtn);
+    loadUsers();
+});
+
+function setActiveButton(activeBtn) {
+    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    activeBtn.classList.add('active');
 }
 
-// Fetch users
-async function fetchUsers() {
-    const response = await fetch('registered.json');
-    users = await response.json();
-    showUsers('students');
+studentsBtn.addEventListener('click', () => {
+    currentUserType = 'student';
+    gradeFilter.classList.remove('hidden');
+    loadUsers();
+    setActiveButton(studentsBtn);
+});
+
+facultyBtn.addEventListener('click', () => {
+    currentUserType = 'faculty';
+    gradeFilter.classList.add('hidden');
+    loadUsers();
+    setActiveButton(facultyBtn);
+});
+
+function loadUsers() {
+    fetch('/registered.json')
+        .then(response => response.json())
+        .then(users => {
+            usersData = users;
+            displayUsers();
+        })
+        .catch(error => console.error("Error loading users:", error));
 }
 
-// Show users based on type
-function showUsers(type) {
-    const list = document.getElementById("user-list");
-    list.innerHTML = "";
-    
-    if (type === "students") {
-        const grouped = groupByGrade(users.filter(u => u.userType === "student"));
-        for (const grade in grouped) {
-            const folder = document.createElement("div");
-            folder.classList.add("user-card");
-            folder.innerHTML = `<strong>Grade ${grade}</strong>`;
-            folder.onclick = () => showSections(grouped[grade]);
-            list.appendChild(folder);
+function displayUsers() {
+    userList.innerHTML = '';
+    const selectedGrade = gradeFilter.value;
+    const filteredUsers = usersData.filter(user =>
+        user.userType === currentUserType &&
+        (currentUserType === 'faculty' || selectedGrade === "all" || String(user.grade) === selectedGrade)
+    );
+
+    if (filteredUsers.length === 0) {
+        userList.innerHTML = `<p>No ${currentUserType} found.</p>`;
+        return;
+    }
+
+    filteredUsers.forEach(user => {
+        const userItem = document.createElement('div');
+        userItem.className = 'user-card';
+        userItem.dataset.id = user.id;
+
+        userItem.innerHTML = `
+            <img src="${user.image || '/assets/svg/empty.jpg'}" alt="${user.name}">
+            <h3>${user.name}</h3>
+            ${currentUserType === 'student' ? `<p>Grade: ${user.grade}</p><p>Section: ${user.section}</p>` : ''}
+            <p>Mobile: ${user.mobile_num}</p>
+            <button class="edit-btn">Edit</button>
+            <button class="delete-btn">Delete</button>
+        `;
+
+        userList.appendChild(userItem);
+    });
+
+    // Event listener for Label Edit button
+    userList.addEventListener("click", (event) => {
+        if (event.target.classList.contains("label-btn")) {
+            const userId = event.target.closest(".user-card")?.dataset.id;
+            openLabelEditModal(userId);
         }
+    });
+}
+
+userList.addEventListener('click', (event) => {
+    const target = event.target;
+    const userId = target.closest('.user-card')?.dataset.id;
+    if (target.classList.contains('edit-btn')) {
+        editUser(userId);
+    } else if (target.classList.contains('delete-btn')) {
+        deleteUser(userId);
+    }
+});
+
+function editUser(id) {
+    console.log("Editing user ID:", id);  // Debugging
+    const user = usersData.find(u => u.id === id);
+
+    if (!user) {
+        console.error("User not found!");
+        return;
+    }
+
+    currentUserId = user.id;
+    document.getElementById("editName").value = user.name;
+    document.getElementById("editMobile").value = user.mobile_num;
+    document.getElementById("previewImage").src = user.image || '/assets/svg/empty.jpg';
+
+    if (user.userType === 'student') {
+        document.getElementById("editGrade").value = user.grade || '';
+        document.getElementById("editSection").value = user.section || '';
+        document.getElementById("editGrade").classList.remove('hidden');
+        document.getElementById("editSection").classList.remove('hidden');
     } else {
-        users.filter(u => u.userType === "faculty").forEach(user => list.appendChild(createUserCard(user)));
+        document.getElementById("editGrade").classList.add('hidden');
+        document.getElementById("editSection").classList.add('hidden');
     }
+
+    // 🟢 Show the modal
+    editModal.classList.remove("hidden");
 }
 
-// Group students by grade
-function groupByGrade(students) {
-    return students.reduce((acc, student) => {
-        acc[student.grade] = acc[student.grade] || [];
-        acc[student.grade].push(student);
-        return acc;
-    }, {});
+function closeModalHandler() {
+    editModal.classList.add('hidden');
 }
 
-// Show sections inside grade
-function showSections(gradeUsers) {
-    const list = document.getElementById("user-list");
-    list.innerHTML = "";
-    
-    const groupedSections = gradeUsers.reduce((acc, user) => {
-        acc[user.section] = acc[user.section] || [];
-        acc[user.section].push(user);
-        return acc;
-    }, {});
+closeModal.addEventListener("click", () => {
+    editModal.classList.add("hidden");
+});
 
-    for (const section in groupedSections) {
-        const folder = document.createElement("div");
-        folder.classList.add("user-card");
-        folder.innerHTML = `<strong>Section ${section}</strong>`;
-        folder.onclick = () => showUserList(groupedSections[section]);
-        list.appendChild(folder);
+cancelBtn.addEventListener("click", () => {
+    editModal.classList.add("hidden");
+});
+
+
+saveBtn.addEventListener('click', () => {
+    const formData = new FormData();
+    formData.append('id', currentUserId);
+    formData.append('name', editName.value);
+    formData.append('mobile_num', editMobile.value);
+    formData.append('userType', currentUserType);
+    if (editImage.files.length > 0) {
+        formData.append('image', editImage.files[0]);
     }
-}
-
-// Show user list
-function showUserList(users) {
-    const list = document.getElementById("user-list");
-    list.innerHTML = "";
-    users.forEach(user => list.appendChild(createUserCard(user)));
-}
-
-// Create user card
-function createUserCard(user) {
-    const card = document.createElement("div");
-    card.classList.add("user-card");
-    card.innerHTML = `<img src="${user.image || 'default.jpg'}" width="50"><br>${user.name}`;
-    card.onclick = () => openModal(user);
-    return card;
-}
-
-// Open modal for edit
-function openModal(user) {
-    selectedUser = user;
-    document.getElementById("user-image").src = user.image || 'default.jpg';
-    document.getElementById("edit-name").value = user.name;
-    document.getElementById("edit-grade").value = user.grade;
-    document.getElementById("edit-section").value = user.section;
-    document.getElementById("user-modal").style.display = "block";
-}
-
-// Close modal
-function closeModal() {
-    document.getElementById("user-modal").style.display = "none";
-}
-
-// Save edited user
-function saveEdit() {
-    if (selectedUser) {
-        selectedUser.name = document.getElementById("edit-name").value;
-        selectedUser.grade = document.getElementById("edit-grade").value;
-        selectedUser.section = document.getElementById("edit-section").value;
-        closeModal();
-        showUsers('students');
+    if (currentUserType === 'student') {
+        formData.append('grade', editGrade.value);
+        formData.append('section', editSection.value);
     }
+
+    fetch(`/update/${currentUserId}`, { method: 'PUT', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            loadUsers();
+            closeModalHandler();
+        });
+});
+
+function deleteUser(id) {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    fetch(`/delete/${id}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            loadUsers();
+        });
 }
 
-// Delete user
-function deleteUser() {
-    if (selectedUser) {
-        users = users.filter(u => u.id !== selectedUser.id);
-        closeModal();
-        showUsers('students');
+editImage.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
-}
-
-// Search users
-function searchUsers() {
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    showUserList(users.filter(u => u.name.toLowerCase().includes(query)));
-}
-
-// Add folder (Grade)
-function addFolder() {
-    const grade = prompt("Enter new grade:");
-    if (grade) {
-        const newFolder = document.createElement("div");
-        newFolder.classList.add("user-card");
-        newFolder.innerHTML = `<strong>Grade ${grade}</strong>`;
-        document.getElementById("user-list").appendChild(newFolder);
-    }
-}
-
-// Load data
-fetchUsers();
+});

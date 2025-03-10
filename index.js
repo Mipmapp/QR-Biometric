@@ -86,6 +86,37 @@ app.post("/register", upload.single("image"), (req, res) => {
     });    
 });
 
+// Handle user deletion
+app.delete("/delete/:id", (req, res) => {
+    const { id } = req.params;
+
+    fs.readFile(DATA_FILE, "utf8", (err, data) => {
+        if (err) return res.status(500).json({ message: "Error reading data" });
+
+        let users = [];
+        try {
+            users = data ? JSON.parse(data) : [];
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            return res.status(500).json({ message: "Invalid JSON format" });
+        }
+
+        const updatedUsers = users.filter(user => user.id !== id);
+
+        if (users.length === updatedUsers.length) {
+            return res.status(404).json({ message: "User  not found" });
+        }
+
+        fs.writeFile(DATA_FILE, JSON.stringify(updatedUsers, null, 2), (err) => {
+            if (err) {
+                console.error("Error saving data:", err);
+                return res.status(500).json({ message: "Error saving data" });
+            }
+            res.json({ message: "User  deleted successfully", success: true });
+        });
+    });
+});
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);

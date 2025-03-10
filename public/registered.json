@@ -1,11 +1,20 @@
-  [
-    {
-      "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
-      "name": "Jullan Carl J. Maglinte",
-      "grade": "12",
-      "section": "St. John Paul II",
-      "userType": "student",
-      "mobile_num": "09510898845",
-      "image": "/uploads/1740956529971-Yan Maglinte.jpg"
-    }
-  ]
+[
+  {
+    "id": "B710DBCA-F2D8-4611-8D8D-9F6655689F95",
+    "name": "Jullan Carl J. Maglinte",
+    "grade": "12",
+    "section": "St. John Paul II",
+    "userType": "student",
+    "mobile_num": "09510898845",
+    "image": "/uploads/1741015993834-Yan Maglinte.jpg"
+  },
+  {
+    "id": "E7D3B2A1-5F6C-4E8D-9B0A-3C4D5E6F7A8B",
+    "name": "Peko",
+    "grade": "11",
+    "section": "St. Thomas",
+    "userType": "student",
+    "mobile_num": "09510898845",
+    "image": "/uploads/1741016072090-image-upscaled.jpeg"
+  }
+]
