@@ -105,22 +105,34 @@
     let cachedRegisteredUsers = null; // Store previously fetched data
     let scannedIds = {};
 
-    async function fetchRegisteredUsers() {
-      if (cachedRegisteredUsers) {
-        return cachedRegisteredUsers;
-      }
+    // async function fetchRegisteredUsers() {
+    //   if (cachedRegisteredUsers) {
+    //     return cachedRegisteredUsers;
+    //   }
 
+    //   try {
+    //     const response = await fetch(`registered.json?t=${new Date().getTime()}`, {
+    //       cache: "no-store",
+    //     });
+    //     cachedRegisteredUsers = await response.json();
+    //     return cachedRegisteredUsers;
+    //   } catch (error) {
+    //     console.error("Error loading registered users:", error);
+    //     if (cachedRegisteredUsers) {
+    //       return cachedRegisteredUsers;
+    //     } else {
+    //       return [];
+    //     }
+    //   }
+    // }
+    
+    async function fetchRegisteredUsers() {
       try {
-        const response = await fetch(`registered.json?t=${new Date().getTime()}`);
-        cachedRegisteredUsers = await response.json();
-        return cachedRegisteredUsers;
+        const response = await fetch(`registered.json?t=${new Date().getTime()}`, { cache: "no-store" });
+        return await response.json(); // Always fetch fresh data
       } catch (error) {
         console.error("Error loading registered users:", error);
-        if (cachedRegisteredUsers) {
-          return cachedRegisteredUsers;
-        } else {
-          return [];
-        }
+        return []; // Return an empty array if there's an error
       }
     }
 
@@ -208,7 +220,7 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
               axios.post('https://api.pushbullet.com/v3/create-text', data, {
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Basic eXRLOEhVaEVlT0xVSTBZMmg5TmRvR1RPRXVXMlIxbTA6',
+                  'Authorization': 'Basic Z2k4RVV1NXk2c2htR2xqSGJtOUNtZWFnMWZQT0FRQU06',
                   'Accept': '*/*',
                   'Cache-Control': 'no-cache',
                   'Pragma': 'no-cache',

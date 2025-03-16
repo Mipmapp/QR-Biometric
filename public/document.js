@@ -34,6 +34,7 @@ function setActiveButton(activeBtn) {
 studentsBtn.addEventListener('click', () => {
     currentUserType = 'student';
     gradeFilter.classList.remove('hidden');
+    document.querySelector(".filter-container").style.display = "none";
     loadUsers();
     setActiveButton(studentsBtn);
 });
@@ -41,6 +42,7 @@ studentsBtn.addEventListener('click', () => {
 facultyBtn.addEventListener('click', () => {
     currentUserType = 'faculty';
     gradeFilter.classList.add('hidden');
+    document.querySelector(".filter-container").style.display = "block";
     loadUsers();
     setActiveButton(facultyBtn);
 });
@@ -92,49 +94,79 @@ function displayUsers() {
             openLabelEditModal(userId);
         }
     });
+
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const userId = event.target.closest('.user-card')?.dataset.id;
+            if (userId) {
+                deleteUser(userId);
+            } else {
+                console.error("Error: User ID is null or undefined");
+            }
+        });
+    });
 }
 
 userList.addEventListener('click', (event) => {
     const target = event.target;
-    const userId = target.closest('.user-card')?.dataset.id;
     if (target.classList.contains('edit-btn')) {
-        editUser(userId);
-    } else if (target.classList.contains('delete-btn')) {
-        deleteUser(userId);
+        const userId = target.closest('.user-card')?.dataset.id;
+        if (userId) {
+            editUser(userId);
+        }
     }
 });
 
 function editUser(id) {
-    console.log("Editing user ID:", id);  // Debugging
-    const user = usersData.find(u => u.id === id);
+    console.log("Editing user ID:", id);  // ✅ Debugging log
+
+    const user = usersData.find(u => String(u.id) === String(id));
 
     if (!user) {
         console.error("User not found!");
         return;
     }
 
-    currentUserId = user.id;
-    document.getElementById("editName").value = user.name;
-    document.getElementById("editMobile").value = user.mobile_num;
-    document.getElementById("previewImage").src = user.image || '/assets/svg/empty.jpg';
+    console.log("User found:", user);  // ✅ Debugging log
 
+    // Fill in user details
+    currentUserId = user.id;
+    editName.value = user.name;
+    editMobile.value = user.mobile_num;
+    previewImage.src = user.image || '/assets/svg/empty.jpg';
+
+    // Show grade & section only for students
     if (user.userType === 'student') {
-        document.getElementById("editGrade").value = user.grade || '';
-        document.getElementById("editSection").value = user.section || '';
-        document.getElementById("editGrade").classList.remove('hidden');
-        document.getElementById("editSection").classList.remove('hidden');
+        editGrade.value = user.grade || '';
+        editSection.value = user.section || '';
+        editGrade.classList.remove('hidden');
+        editSection.classList.remove('hidden');
     } else {
-        document.getElementById("editGrade").classList.add('hidden');
-        document.getElementById("editSection").classList.add('hidden');
+        editGrade.classList.add('hidden');
+        editSection.classList.add('hidden');
     }
 
-    // 🟢 Show the modal
+    // 🚀 Fix: Show the modal
     editModal.classList.remove("hidden");
+    editModal.style.display = "flex";  // 🔥 Force visibility
+    editModal.style.zIndex = "9999";   // 🔥 Ensure it's on top
+
+    console.log("Modal should now be visible.");
 }
 
 function closeModalHandler() {
     editModal.classList.add('hidden');
+    editModal.style.display = "none"; // Ensures it disappears fully
 }
+
+closeModal.addEventListener("click", closeModalHandler);
+cancelBtn.addEventListener("click", closeModalHandler);
+
+window.addEventListener("click", (event) => {
+    if (event.target === editModal) {
+        closeModalHandler();
+    }
+});
 
 closeModal.addEventListener("click", () => {
     editModal.classList.add("hidden");
@@ -151,21 +183,26 @@ saveBtn.addEventListener('click', () => {
     formData.append('name', editName.value);
     formData.append('mobile_num', editMobile.value);
     formData.append('userType', currentUserType);
+
     if (editImage.files.length > 0) {
-        formData.append('image', editImage.files[0]);
+        formData.append('image', editImage.files[0]); // Add image only if selected
     }
     if (currentUserType === 'student') {
         formData.append('grade', editGrade.value);
         formData.append('section', editSection.value);
     }
 
-    fetch(`/update/${currentUserId}`, { method: 'PUT', body: formData })
+    fetch(`/update/${currentUserId}`, {
+        method: 'PUT',
+        body: formData, // ✅ No need for headers, browser sets it automatically
+    })
         .then(response => response.json())
         .then(data => {
             alert(data.message);
             loadUsers();
             closeModalHandler();
-        });
+        })
+        .catch(error => console.error("Error updating user:", error));
 });
 
 function deleteUser(id) {
@@ -187,4 +224,32 @@ editImage.addEventListener('change', function () {
         };
         reader.readAsDataURL(file);
     }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const editRole = document.getElementById("editRole");
+    const gradeLabel = document.getElementById("gradeLabel");
+    const editGrade = document.getElementById("editGrade");
+    const editSection = document.getElementById("editSection");
+
+    // Function to toggle fields based on role
+    function toggleRoleFields() {
+        if (editRole.value === "faculty") {
+            // Faculty should not have Grade or Section
+            gradeLabel.style.display = "none";
+            editGrade.style.display = "none";
+            editSection.style.display = "none";
+        } else {
+            // Student should have Grade & Section
+            gradeLabel.style.display = "block";
+            editGrade.style.display = "block";
+            editSection.style.display = "block";
+        }
+    }
+
+    // Event Listener for Role Change
+    editRole.addEventListener("change", toggleRoleFields);
+
+    // Call on modal open (if user is already faculty, hide grade/section)
+    toggleRoleFields();
 });

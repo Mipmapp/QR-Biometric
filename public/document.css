@@ -180,7 +180,10 @@ body {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     width: 90%;
-    max-width: 400px;
+    height: auto; /* 🔥 Make height flexible */
+    max-width: 360px; /* ⬆ Increase max width for faculty */
+    max-height: 90vh; /* Prevent from being too tall */
+    overflow-y: auto; /* Enable scrolling if content overflows */
     animation: fadeIn 0.3s ease-in-out;
     color: white;
 }
@@ -189,7 +192,28 @@ body {
 .modal-content {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    text-align: center;
+    gap: 5px; /* 🔥 Increase spacing for readability */
+}
+
+#editModal input, #editModal select {
+    width: 100%;
+    padding: 10px;
+    background: #222;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    font-size: 16px; /* 🔥 Slightly bigger text */
+}
+
+/* Ensure Buttons Fit Properly */
+.modal-content button {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px; /* 🔥 Bigger font for easier clicking */
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
 }
 
 /* Modal Labels */
@@ -218,16 +242,6 @@ body {
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
-}
-
-/* Save & Cancel Buttons */
-.modal-content button {
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
 }
 
 /* Save Button */
@@ -270,26 +284,6 @@ body {
     .user-card {
         width: 100%;
     }
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-    width: 400px;
-    max-width: 90%;
-    z-index: 1000;
-}
-
-.modal-content {
-    text-align: center;
 }
 
 .hidden {

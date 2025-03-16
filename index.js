@@ -37,6 +37,7 @@ if (!fs.existsSync(DATA_FILE)) {
 app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html")));
 app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/register.html")));
 app.get("/documents", (_, res) => res.sendFile(path.join(__dirname, "public/document.html")));
+app.get("/json", (_, res) => res.sendFile(path.join(__dirname, "public/json.html")));
 
 // Handle user registration
 const cors = require("cors");
@@ -55,7 +56,7 @@ app.post("/register", upload.single("image"), (req, res) => {
 
     fs.readFile(DATA_FILE, "utf8", (err, data) => {
         if (err) return res.status(500).json({ message: "Error reading data" });
-    
+
         let users = [];
         try {
             users = data ? JSON.parse(data) : []; // Ensure it doesn't reset to an empty state
@@ -63,27 +64,27 @@ app.post("/register", upload.single("image"), (req, res) => {
             console.error("Error parsing JSON:", error);
             return res.status(500).json({ message: "Invalid JSON format" });
         }
-    
+
         const existingIndex = users.findIndex(user => user.id === id);
         let message = "User registered successfully!";
-    
+
         if (existingIndex !== -1) {
             users[existingIndex] = { id, name, grade, section, userType, mobile_num, image: imagePath };
             message = "User details updated successfully!";
         } else {
             users.push({ id, name, grade, section, userType, mobile_num, image: imagePath });
         }
-    
+
         console.log("Updated Users List:", users);
-    
+
         fs.writeFile(DATA_FILE, JSON.stringify(users, null, 2), (err) => {
             if (err) {
                 console.error("Error saving data:", err);
                 return res.status(500).json({ message: "Error saving data" });
             }
             res.json({ message, success: true });
-        });        
-    });    
+        });
+    });
 });
 
 // Handle user deletion
@@ -113,6 +114,51 @@ app.delete("/delete/:id", (req, res) => {
                 return res.status(500).json({ message: "Error saving data" });
             }
             res.json({ message: "User  deleted successfully", success: true });
+        });
+    });
+});
+
+app.put("/update/:id", upload.single("image"), (req, res) => {
+    const { id } = req.params;
+    const { name, grade, section, mobile_num, userType } = req.body;
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Store the new image path if uploaded
+
+    console.log("Received Update Request:", req.body); // ✅ Debugging log
+    // console.log("Uploaded Image:", req.file);
+
+    fs.readFile(DATA_FILE, "utf8", (err, data) => {
+        if (err) return res.status(500).json({ message: "Error reading data" });
+
+        let users = [];
+        try {
+            users = JSON.parse(data) || [];
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            return res.status(500).json({ message: "Invalid JSON format" });
+        }
+
+        const userIndex = users.findIndex(user => String(user.id) === String(id));
+        if (userIndex === -1) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update user details
+        users[userIndex] = {
+            ...users[userIndex],
+            name,
+            grade,
+            section,
+            mobile_num,
+            userType,
+            image: imagePath || users[userIndex].image, // Keep old image if not updated
+        };
+
+        fs.writeFile(DATA_FILE, JSON.stringify(users, null, 2), (err) => {
+            if (err) {
+                console.error("Error saving data:", err);
+                return res.status(500).json({ message: "Error saving data" });
+            }
+            res.json({ message: "User updated successfully!", success: true });
         });
     });
 });
