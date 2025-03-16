@@ -125,7 +125,7 @@
     //     }
     //   }
     // }
-    
+
     async function fetchRegisteredUsers() {
       try {
         const response = await fetch(`registered.json?t=${new Date().getTime()}`, { cache: "no-store" });
@@ -210,7 +210,7 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
 
               const data = {
                 data: {
-                  target_device_iden: "ujCQgSifOuWsjzjBxOWGPY",
+                  target_device_iden: "ujyGpJ5enimsjz11bLu8xU",
                   addresses: [number],
                   guid: generateGUID(15),
                   message,
@@ -227,7 +227,7 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
                   'API-Version': '2014-05-07',
                   'Origin': 'https://www.pushbullet.com',
                   'Referer': 'https://www.pushbullet.com/',
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0',
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0',
                 }
               })
                 .then(response => {
@@ -235,6 +235,7 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
                 })
                 .catch(error => {
                   console.error('Error:', error.response ? error.response.data : error.message);
+                  alert(`Failed to send message: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
                 });
             }
           } else {
