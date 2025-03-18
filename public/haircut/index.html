@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Capture</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, rgb(46, 46, 46), rgb(90, 83, 83), rgb(59, 59, 59));
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            position: relative;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* Centers content vertically */
+            height: 100vh;
+        }
+
+        #content-wrapper {
+            display: flex;
+            flex-direction: row;
+            /* Keep everything in a row */
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        #reference-box,
+        #instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #ddd;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #reference-image {
+            display: block;
+            /* Make it a block element */
+            margin: 0 auto;
+            /* Auto margins center the image horizontally */
+        }
+
+        #video-container {
+            width: 400px;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+
+            /* Centering only the video inside its box */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #captureBtn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #e80000;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            right: 60;
+        }
+
+        #captureBtn:hover {
+            background-color: #fe3e3e;
+            transform: scale(1.1);
+        }
+
+        #instructions {
+            max-width: 250px;
+            text-align: center;
+        }
+
+        #reference-box {
+            width: 250px;
+            text-align: center;
+        }
+
+        #instructions h3 {
+            margin-bottom: 10px;
+        }
+
+        #result-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgb(46, 46, 46), rgb(90, 83, 83), rgb(59, 59, 59));
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 2px solid #ddd;
+        }
+
+        #capturedImage {
+            width: 200px;
+            height: 150px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            transform: scaleX(-1);
+        }
+
+        .action-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .try-again {
+            background-color: #d61500;
+            color: white;
+        }
+
+        .try-again:hover {
+            background-color: #c0392b;
+        }
+
+        .proceed {
+            background-color: #04dc00;
+            color: white;
+        }
+
+        .proceed:hover {
+            background-color: #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            #content-wrapper {
+                flex-direction: column;
+            }
+
+            #video-container {
+                width: 300px;
+                height: 250px;
+            }
+        }
+
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            font-size: 20px;
+            display: none;
+        }
+
+        .loader {
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #header-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #header-image {
+            border-radius: 10px;
+            /* Optional: Rounded corners */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="header-container">
+            <img id="header-image" src="../assets/logo.png" alt="Logo" width="60" height="60">
+            <h1>Haircut Monitor</h1>
+        </div>
+        <div id="content-wrapper">
+            <div id="reference-box">
+                <h3>Required Haircut</h3>
+                <img id="reference-image" src="barbers_cut.png" alt="Haircut Reference" width="150" height="200"
+                    style="border-radius:10px; object-fit: cover;">
+                <p>Barber's Cut</p>
+            </div>
+            <div id="video-container">
+                <video id="video" autoplay></video>
+            </div>
+            <div id="instructions">
+                <h3>Steps to Capture</h3>
+                <p><strong>Step 1:</strong> Click the <b>Capture</b> button while mimicking the required haircut pose.
+                </p>
+                <p><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied with the captured image.</p>
+                <p><strong>Step 3:</strong> Wait for the response, and you're done!</p>
+            </div>
+        </div>
+        <button id="captureBtn">Capture</button>
+        <div id="result-container">
+            <img id="capturedImage" src="" alt="Captured Face">
+            <div id="analysisResult"
+                style="margin-top: 15px; padding: 10px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; text-align: center; display: none;">
+                <p id="analysisText" style="margin: 0; font-weight: bold;"></p>
+            </div>
+            <div class="action-buttons">
+                <button class="try-again" id="tryAgain">Try Again</button>
+                <button class="proceed" id="proceed">Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('captureBtn');
+        const resultContainer = document.getElementById('result-container');
+        const capturedImage = document.getElementById('capturedImage');
+        const tryAgain = document.getElementById('tryAgain');
+        const proceed = document.getElementById('proceed');
+
+        navigator.mediaDevices.getUserMedia({ video: true, facingMode: "user" })
+            .then(stream => video.srcObject = stream)
+            .catch(err => console.error("Error accessing webcam:", err));
+
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size to match video dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Capture raw image from camera
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Display the raw captured image
+            capturedImage.src = canvas.toDataURL('image/png');
+            resultContainer.style.display = "flex";
+        }
+
+        function mergeWithLayout() {
+            document.getElementById('loadingScreen').style.display = "flex"; // Show loading screen
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const layout = new Image();
+            const captured = new Image();
+
+            layout.src = 'layout.png';
+            captured.src = capturedImage.src;
+
+            layout.onload = () => {
+                canvas.width = layout.width;
+                canvas.height = layout.height;
+                ctx.drawImage(layout, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(captured, 1000, 210, 800, 700);
+
+                canvas.toBlob((blob) => {
+                    const formData = new FormData();
+                    formData.append("image", blob, "merged_image.png");
+
+                    fetch("/haircut-image", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('loadingScreen').style.display = "none"; // Hide loading screen
+                            document.getElementById('instructions').style.display = "none";
+                            document.getElementById('video-container').style.display = "none";
+                            document.getElementById('reference-box').style.display = "none";
+
+                            // Show the analysis result inside #result-container
+                            const analysisResult = document.getElementById('analysisResult');
+                            const analysisText = document.getElementById('analysisText');
+
+                            analysisText.textContent = `Haircut Analysis: ${data.result.content}`;
+                            analysisResult.style.display = "block"; // Show result container
+                        })
+                        .catch(error => {
+                            document.getElementById('loadingScreen').style.display = "none"; // Hide loading screen
+                            console.error("Error uploading image:", error);
+                        });
+                }, "image/png");
+            };
+        }
+
+        captureBtn.addEventListener('click', captureImage);
+        tryAgain.addEventListener('click', () => {
+            // Hide result container
+            resultContainer.style.display = "none";
+
+            // Reset the analysis result text and hide the analysis container
+            document.getElementById('analysisText').textContent = "";
+            document.getElementById('analysisResult').style.display = "none";
+
+            // Show the video feed, capture button, and instructions
+            document.getElementById('instructions').style.display = "block";
+            document.getElementById('video-container').style.display = "block";
+            document.getElementById('reference-box').style.display = "block";
+
+            // Clear the captured image source so the old image doesn't persist
+            capturedImage.src = "";
+
+            // Ensure the capture button is visible again
+            captureBtn.style.display = "block";
+        });
+
+        proceed.addEventListener('click', mergeWithLayout);
+    </script>
+
+    <div id="loadingScreen">
+        <div class="loader"></div>
+        <p>Processing, please wait...</p>
+    </div>
+
+</body>
+
+</html>

@@ -1,7 +1,9 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const FormData = require("form-data");
 const multer = require("multer");
+const axios = require("axios");
 
 const app = express();
 const PORT = 3000;
@@ -38,6 +40,7 @@ app.get("/", (_, res) => res.sendFile(path.join(__dirname, "public/index.html"))
 app.get("/register", (_, res) => res.sendFile(path.join(__dirname, "public/register.html")));
 app.get("/documents", (_, res) => res.sendFile(path.join(__dirname, "public/document.html")));
 app.get("/json", (_, res) => res.sendFile(path.join(__dirname, "public/json.html")));
+app.get("/haircut", (_, res) => res.sendFile(path.join(__dirname, "public/haircut/index.html")));
 
 // Handle user registration
 const cors = require("cors");
@@ -161,6 +164,85 @@ app.put("/update/:id", upload.single("image"), (req, res) => {
             res.json({ message: "User updated successfully!", success: true });
         });
     });
+});
+
+const IMAGEBB_API_KEY = "863b264408181e62e7f1b1110f6fbefa";
+
+app.post("/haircut-image", upload.single("image"), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    try {
+        const imagePath = path.join(__dirname, "public", "uploads", req.file.filename);
+        const imageBase64 = fs.readFileSync(imagePath, { encoding: "base64" });
+
+        const formData = new URLSearchParams();
+        formData.append("key", IMAGEBB_API_KEY);
+        formData.append("image", imageBase64);
+        formData.append("expiration", 600);
+
+        // Upload to ImageBB
+        const imagebbResponse = await axios.post("https://api.imgbb.com/1/upload", formData);
+        const imageUrl = imagebbResponse.data.data.url;
+
+        console.log("Image URL:", imageUrl);
+
+        // Delete the temporary file after successful upload
+        fs.unlinkSync(imagePath);
+
+        // Retry mechanism for Gemini API (up to 3 attempts)
+        let geminiResponse;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (attempts < maxAttempts) {
+            try {
+                geminiResponse = await axios.get("https://gemini-api-5k0h.onrender.com/gemini/image", {
+                    params: {
+                        q: `Ensure the student's haircut complies with school policy. Respond with one of the following:  
+
+- "No Face Detected" if no face is found in the image.  
+- "Please one person at a time" if there are more than an individual in the image.
+- "Face is too far, please come closer." if the face is not clear or too distant and not that close similar to the required haircut.
+- "Acceptable" if the haircut meets the requirements.  
+- "Acceptable" if the haircut has a cut on the sides and not too long.  
+- "Unacceptable - [Reason]" if it violates the policy (e.g., "Unacceptable - Hair is too long").  
+- "Unacceptable - Hair is colored" if the hair is dyed.`,
+                        url: imageUrl,
+                    },
+                    headers: { "Accept": "application/json" }
+                });
+
+                // If successful, break out of the loop
+                break;
+
+            } catch (error) {
+                attempts++;
+                console.error(`Attempt ${attempts} failed:`, error.message);
+
+                if (attempts < maxAttempts) {
+                    console.log("Retrying in 1 second...");
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+                } else {
+                    console.error("Max retry attempts reached. Gemini API failed.");
+                    return res.status(500).json({ message: "Failed to analyze image after multiple attempts" });
+                }
+            }
+        }
+
+        // Send response to frontend
+        res.json({
+            imageUrl,
+            result: geminiResponse.data,
+        });
+
+        console.log("AI Response:", geminiResponse.data);
+
+    } catch (error) {
+        console.error("Error processing image:", error);
+        res.status(500).json({ message: "Failed to process image" });
+    }
 });
 
 // Start the server
