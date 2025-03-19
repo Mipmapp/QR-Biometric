@@ -171,6 +171,8 @@ app.put("/update/:id", upload.single("image"), (req, res) => {
 const genAPI = [
     "AIzaSyDdvYCReYbK3C7uw4wnplQDMyDfuWlPYNg",
     "AIzaSyBl74QFcr6JYwHeVSHcFvVNiFsEDyqs9J8",
+    "AIzaSyCyh0Wdd4kM97NxIah71VcxyYDqKRSIjUE",
+    "AIzaSyAgiGw281bYAWHb0PiPVIr3kvdZP2GN2Bk"
 ];
 
 // Function to get a random API key
@@ -213,16 +215,28 @@ app.post("/haircut-image", upload.single("image"), async (req, res) => {
         fs.unlinkSync(imagePath);
 
         // Prompt for Gemini API
-        const prompt = `Ensure that the student's haircut complies with the school's policy using the haircut image monitoring system. Make sure to check that the "My Haircut" image is truly newly groomed and make sure to focus on the haircut only. The system will analyze the provided image and respond with one of the following:
+        const prompt = `Analyze the submitted "My Haircut" image and verify if it follows the school's grooming policy. Respond with the appropriate message based on the haircut's compliance.
 
-"No Face Detected" – If no face or a person is found in the image.
-"Please ensure only one person is in the frame." – Only if multiple faces are detected in the haircut image.
-"Face is too far, please move closer." – If the face is unclear, too distant, or does not match the required haircut guidelines.
-"Acceptable" – If the haircut meets the school's requirements.
-"Unacceptable - [Reason]" – If the haircut violates the school policy (e.g., "Unacceptable - Hair is too long.").
-"Unacceptable - Hair is colored." – If the student's hair is dyed, which is not allowed.
+Key Requirements:
+Hair must be freshly groomed and neatly trimmed.
+The sides and back must be properly tapered or faded—excessive length or bulk is not allowed. If the sides appear noticeably longer or thicker than the required standard, mark it as unacceptable.
+The top hair can be slightly longer, as long as the sides are trimmed, tapered, or faded.
+Hair must not cover the ears, eyebrows, or extend past the collar.
+No hair coloring or highlights—only natural hair color is allowed.
+The image must clearly show the haircut (no accessories, hats, or filters).
+Automated System Responses:
+"Don't bow your head." – If the person is tilting their head downward.
+"No Person Detected" – No person is found in the image.
+"Please ensure only one person is in the frame." – Multiple faces detected.
+"Image is too blurry, please move closer." – The face is unclear, blurry, too distant, or does not properly show the haircut.
+"Acceptable" – The haircut meets the school's requirements.
+"Unacceptable - Hair is too long." – The hair exceeds the allowed length.
+"Unacceptable - Hair is colored." – Artificial hair dye or highlights are detected.
+"Unacceptable - Sides are too long." – The sides are longer than permitted or not properly tapered.
+If a response above is selected, do not provide additional reasoning. If another issue is detected, return:
 
-This system helps ensure compliance with the school's grooming standards by verifying the student's haircut against the required guidelines.`;
+"Unacceptable - [Other Reason]" – The haircut violates other school policies (e.g., unkempt appearance, extreme styles).
+Refer to "My Haircut" as the user’s haircut, using "You" or "Your" for clarity. Keep responses simple, concise, direct, and jargon-free.`;
 
         let usedKeys = new Set();
         let geminiResponse;
@@ -237,7 +251,7 @@ This system helps ensure compliance with the school's grooming standards by veri
             try {
                 console.log(`Using API Key: ${apiKey}`);
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
                 geminiResponse = await model.generateContent([prompt, imagePart]);
 

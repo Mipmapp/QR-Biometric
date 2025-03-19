@@ -91,7 +91,6 @@
             border-radius: 8px;
             cursor: pointer;
             transition: transform 0.2s;
-            right: 60;
         }
 
         #captureBtn:hover {
@@ -131,20 +130,22 @@
             align-items: center;
             justify-content: center;
             position: absolute;
-            width: 330px;
-            height: 280px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, rgb(46, 46, 46), rgb(90, 83, 83), rgb(59, 59, 59));
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(8px);
             border: 2px solid #ddd;
-            opacity: 0;
-            z-index: 10; /* Higher than the overlay */
-            /* Initially hidden */
+            z-index: 10;
+            max-width: 90vw;
+            max-height: 80vh;
+            width: 400px;
+            /* Set a base width */
+            height: auto;
+            z-index: 10;
         }
 
         .show-popup {
@@ -154,12 +155,34 @@
         }
 
         #capturedImage {
-            width: 300px;
-            height: 250px;
+            width: 90%;
+            max-width: 250px;
+            height: 80%;
+            max-height: 60vh;
             border-radius: 10px;
             object-fit: cover;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
             transform: scaleX(-1);
+        }
+
+        #analysisResult {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            text-align: center;
+            max-width: 90%;
+            font-size: 0.9em;
+            /* Adjust font size */
+            word-wrap: break-word;
+        }
+
+        #analysisText {
+            font-size: 1em;
+            font-weight: bold;
+            max-width: 100%;
+            word-wrap: break-word;
+            text-align: center;
         }
 
         .action-buttons {
@@ -199,19 +222,71 @@
 
         @media (orientation: landscape) {
             body {
-                flex-direction: row;
-                /* Arrange content horizontally */
-                justify-content: space-around;
-                height: 100vh;
-            }
-
-            #container {
-                height: auto;
-                width: 100%;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
+                height: 100vh;
+            }
+
+            #container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                text-align: center;
+            }
+
+            #resultContainer {
+                display: flex;
+                flex-direction: row;
+                /* Side by side layout */
+                align-items: center;
+                justify-content: center;
+                width: 90%;
+                max-width: 400px;
+                background: rgba(0, 0, 0, 0.7);
+                padding: 15px;
+                border-radius: 10px;
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            }
+
+            #capturedImage {
+                width: 40%;
+                max-width: 100px;
+                height: auto;
+                border-radius: 10px;
+                object-fit: cover;
+                transform: scaleX(-1);
+            }
+
+            #analyseText {
+                width: 60%;
+                /* Takes the remaining 60% */
+                margin-left: 15px;
+                text-align: left;
+                font-size: 16px;
+                font-weight: bold;
+                color: white;
+            }
+
+            #tryAgainButton {
+                margin-top: 15px;
+                padding: 10px 20px;
+                font-size: 18px;
+                border: none;
+                border-radius: 5px;
+                background-color: red;
+                color: white;
+                cursor: pointer;
+                width: 90%;
+                max-width: 250px;
+                text-align: center;
+            }
+
+            #tryAgainButton:hover {
+                background-color: darkred;
             }
 
             #header-container {
@@ -261,6 +336,7 @@
             color: white;
             font-size: 20px;
             display: none;
+            z-index: 11;
         }
 
         .loader {
@@ -333,8 +409,8 @@
                 <h3>Steps to Capture</h3>
                 <p><strong>Step 1:</strong> Click the <b>Capture</b> button while mimicking the required haircut pose.
                 </p>
-                <p><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied with the captured image.</p>
-                <p><strong>Step 3:</strong> Wait for the response, and you're done!</p>
+                <p><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied then wait for the response.</p>
+                <p><strong>Note:</strong> To obtain a more accurate result, please move your head closer to the camera.</p>
             </div>
         </div>
         <button id="captureBtn">Capture</button>
@@ -378,7 +454,7 @@
             resultContainer.classList.add("show-popup");
 
             document.getElementById('overlay').style.display = "block"; // Show the overlay
-            document.getElementById('container').classList.add("blur-background"); // Blur background
+            //document.getElementById('container').classList.add("blur-background"); // Blur background
         }
 
         function mergeWithLayout() {
@@ -420,7 +496,7 @@
                             let result = data.result.trim();  // Get the result text and trim spaces
                             let formattedText = ""; // This will hold the final formatted text
 
-                            if (result === "Acceptable") {
+                            if (result.startsWith("Acceptable")) {
                                 formattedText = `<p>Haircut Analysis:</p>
                          <p style="color: limegreen; font-size: 30px; font-weight: bold;">Acceptable</p>`;
                             }
@@ -435,7 +511,8 @@
                             }
 
                             analysisText.innerHTML = formattedText; // Apply the formatted text
-                            analysisResult.style.display = "block"; // Show the result container
+                            analysisResult.style.display = "block";
+                            proceed.style.display = "none";
                         })
                         .catch(error => {
                             document.getElementById('loadingScreen').style.display = "none"; // Hide loading screen
@@ -446,22 +523,9 @@
         }
 
         captureBtn.addEventListener('click', captureImage);
-        function captureImage() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            capturedImage.src = canvas.toDataURL('image/png');
-
-            resultContainer.classList.remove("show-popup");
-            void resultContainer.offsetWidth;
-            resultContainer.classList.add("show-popup");
-
-            document.getElementById('overlay').style.display = "block"; // Show the overlay
-        }
 
         tryAgain.addEventListener('click', () => {
+            proceed.style.display = "block";
             resultContainer.classList.remove("show-popup");
             resultContainer.style.display = "none";
 
