@@ -331,6 +331,9 @@
                 height: 100vh;
             }
 
+            h3 {
+                z-index: 5;
+            }
         }
 
         #loadingScreen {
@@ -377,7 +380,7 @@
 
         #header-image {
             border-radius: 10px;
-            /* Optional: Rounded corners */
+            z-index: 5;
         }
 
         #overlay {
@@ -515,8 +518,8 @@
                             else if (result.startsWith("Unacceptable")) {
                                 let reason = result.replace("Unacceptable - ", ""); // Extract the reason
                                 formattedText = `<p>Haircut Analysis:</p>
-                         <p style="color: red; font-size: 30px; font-weight: bold;">Unacceptable</p>
-                         <p style="font-size: 20px;">${reason}</p>`; // Display the reason normally
+                         <p style="color: red; font-size: 20px; font-weight: bold;">Unacceptable</p>
+                         <p style="font-size: 10px;">${reason}</p>`; // Display the reason normally
                             }
                             else {
                                 formattedText = `<p style="color: orange; font-size: 20px; font-weight: bold;">${result}</p>`;
@@ -556,55 +559,37 @@
         });
 
         proceed.addEventListener('click', mergeWithLayout);
-        let holdTimer;
-        let isFullScreen = false;
 
-        function startHoldTimer() {
-            holdTimer = setTimeout(() => {
-                if (!isFullScreen) {
-                    enterFullScreen();
-                } else {
-                    exitFullScreen();
-                }
-            }, 3000); // 3 seconds hold time
-        }
+        let tapCount = 0;
+        let lastTapTime = 0;
 
-        function cancelHoldTimer() {
-            clearTimeout(holdTimer);
-        }
+        function handleFastTaps() {
+            const currentTime = new Date().getTime();
 
-        document.addEventListener('mousedown', startHoldTimer);
-        document.addEventListener('mouseup', cancelHoldTimer);
-
-        document.addEventListener('touchstart', startHoldTimer);
-        document.addEventListener('touchend', cancelHoldTimer);
-
-        function enterFullScreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.mozRequestFullScreen) {
-                elem.mozRequestFullScreen();
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen();
+            if (currentTime - lastTapTime <= 1000) {
+                tapCount++;
+            } else {
+                tapCount = 1;
             }
-            isFullScreen = true;
+
+            lastTapTime = currentTime;
+
+            if (tapCount >= 4) {
+                toggleFullscreen();
+                tapCount = 0;
+            }
         }
 
-        function exitFullScreen() {
-            if (document.exitFullscreen) {
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+                });
+            } else {
                 document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
             }
-            isFullScreen = false;
         }
+        document.addEventListener('click', handleFastTaps);
     </script>
 
     <div id="loadingScreen">
