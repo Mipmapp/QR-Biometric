@@ -176,7 +176,9 @@
               <img src="${user.image ? `${window.location.origin}${user.image}` : 'assets/svg/empty.jpg'}" 
          alt="${user.name}" class="user-image" />
               <h3 align="center" class="user-name">${user.name}</h3>
-              <h4 class="user-grade-section">Grade ${user.grade} - ${user.section}</h4>
+              <h4 class="user-grade-section">
+  ${user.grade && user.section ? `Grade ${user.grade} - ${user.section}` : 'Faculty'}
+</h4>
               <p class="login-time">Logged in Date & Time: ${loginTime}</p>
             </div>
           `;
