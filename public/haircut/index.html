@@ -71,6 +71,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 4;
         }
 
         #video {
@@ -91,6 +92,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: transform 0.2s;
+            z-index: 5;
         }
 
         #captureBtn:hover {
@@ -295,6 +297,7 @@
                 /* Adjust title position */
                 left: 50%;
                 transform: translateX(-50%);
+                z-index: 5;
             }
 
             #content-wrapper {
@@ -329,10 +332,6 @@
                 overscroll-behavior: contain;
                 /* Prevent edge overscroll effect */
                 height: 100vh;
-            }
-
-            h3 {
-                z-index: 5;
             }
         }
 
