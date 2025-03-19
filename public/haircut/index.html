@@ -233,8 +233,8 @@
 <body>
     <div id="container">
         <div id="header-container">
-            <img id="header-image" src="../assets/logo.png" alt="Logo" width="60" height="60">
-            <h1>Haircut Monitor</h1>
+            <img id="header-image" src="../assets/logo.png" alt="Logo" width="40" height="40">
+            <h3>Haircut Monitor</h3>
         </div>
         <div id="content-wrapper">
             <div id="reference-box">
@@ -332,8 +332,25 @@
                             const analysisResult = document.getElementById('analysisResult');
                             const analysisText = document.getElementById('analysisText');
 
-                            analysisText.textContent = `Haircut Analysis: ${data.result.content}`;
-                            analysisResult.style.display = "block"; // Show result container
+                            let result = data.result.trim();  // Get the result text and trim spaces
+                            let formattedText = ""; // This will hold the final formatted text
+
+                            if (result === "Acceptable") {
+                                formattedText = `<p>Haircut Analysis:</p>
+                         <p style="color: limegreen; font-size: 30px; font-weight: bold;">Acceptable</p>`;
+                            }
+                            else if (result.startsWith("Unacceptable")) {
+                                let reason = result.replace("Unacceptable - ", ""); // Extract the reason
+                                formattedText = `<p>Haircut Analysis:</p>
+                         <p style="color: red; font-size: 30px; font-weight: bold;">Unacceptable</p>
+                         <p style="font-size: 20px;">${reason}</p>`; // Display the reason normally
+                            }
+                            else {
+                                formattedText = `<p style="color: orange; font-size: 20px; font-weight: bold;">${result}</p>`;
+                            }
+
+                            analysisText.innerHTML = formattedText; // Apply the formatted text
+                            analysisResult.style.display = "block"; // Show the result container
                         })
                         .catch(error => {
                             document.getElementById('loadingScreen').style.display = "none"; // Hide loading screen
@@ -365,6 +382,55 @@
         });
 
         proceed.addEventListener('click', mergeWithLayout);
+        let holdTimer;
+        let isFullScreen = false;
+
+        function startHoldTimer() {
+            holdTimer = setTimeout(() => {
+                if (!isFullScreen) {
+                    enterFullScreen();
+                } else {
+                    exitFullScreen();
+                }
+            }, 3000); // 3 seconds hold time
+        }
+
+        function cancelHoldTimer() {
+            clearTimeout(holdTimer);
+        }
+
+        document.addEventListener('mousedown', startHoldTimer);
+        document.addEventListener('mouseup', cancelHoldTimer);
+
+        document.addEventListener('touchstart', startHoldTimer);
+        document.addEventListener('touchend', cancelHoldTimer);
+
+        function enterFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+            isFullScreen = true;
+        }
+
+        function exitFullScreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            isFullScreen = false;
+        }
     </script>
 
     <div id="loadingScreen">

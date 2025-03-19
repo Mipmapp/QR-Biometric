@@ -4,6 +4,8 @@ const fs = require("fs");
 const FormData = require("form-data");
 const multer = require("multer");
 const axios = require("axios");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
 
 const app = express();
 const PORT = 3000;
@@ -166,8 +168,33 @@ app.put("/update/:id", upload.single("image"), (req, res) => {
     });
 });
 
-const IMAGEBB_API_KEY = "863b264408181e62e7f1b1110f6fbefa";
+const genAPI = [
+    "AIzaSyDdvYCReYbK3C7uw4wnplQDMyDfuWlPYNg",
+    "AIzaSyBl74QFcr6JYwHeVSHcFvVNiFsEDyqs9J8",
+];
 
+// Function to get a random API key
+function getRandomApiKey(usedKeys) {
+    const availableKeys = genAPI.filter(key => !usedKeys.has(key));
+    return availableKeys.length > 0 ? availableKeys[Math.floor(Math.random() * availableKeys.length)] : null;
+}
+
+// Converts image file to Base64 for Gemini API
+function fileToGenerativePart(filePath, mimeType) {
+    try {
+        return {
+            inlineData: {
+                data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
+                mimeType,
+            },
+        };
+    } catch (error) {
+        console.error(`Error reading file ${filePath}:`, error.message);
+        return null;
+    }
+}
+
+// Image Upload & Gemini Processing
 app.post("/haircut-image", upload.single("image"), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: "No image uploaded" });
@@ -175,69 +202,62 @@ app.post("/haircut-image", upload.single("image"), async (req, res) => {
 
     try {
         const imagePath = path.join(__dirname, "public", "uploads", req.file.filename);
-        const imageBase64 = fs.readFileSync(imagePath, { encoding: "base64" });
 
-        const formData = new URLSearchParams();
-        formData.append("key", IMAGEBB_API_KEY);
-        formData.append("image", imageBase64);
-        formData.append("expiration", 600);
+        // Convert image for Gemini API
+        const imagePart = fileToGenerativePart(imagePath, "image/png");
+        if (!imagePart) {
+            return res.status(500).json({ message: "Failed to read image file." });
+        }
 
-        // Upload to ImageBB
-        const imagebbResponse = await axios.post("https://api.imgbb.com/1/upload", formData);
-        const imageUrl = imagebbResponse.data.data.url;
-
-        console.log("Image URL:", imageUrl);
-
-        // Delete the temporary file after successful upload
+        // Delete the image file after conversion (to free up space)
         fs.unlinkSync(imagePath);
 
-        // Retry mechanism for Gemini API (up to 3 attempts)
+        // Prompt for Gemini API
+        const prompt = `Ensure that the student's haircut complies with the school's policy using the haircut image monitoring system. Make sure to check that the "My Haircut" image is truly newly groomed and make sure to focus on the haircut only. The system will analyze the provided image and respond with one of the following:
+
+"No Face Detected" – If no face or a person is found in the image.
+"Please ensure only one person is in the frame." – Only if multiple faces are detected in the haircut image.
+"Face is too far, please move closer." – If the face is unclear, too distant, or does not match the required haircut guidelines.
+"Acceptable" – If the haircut meets the school's requirements.
+"Unacceptable - [Reason]" – If the haircut violates the school policy (e.g., "Unacceptable - Hair is too long.").
+"Unacceptable - Hair is colored." – If the student's hair is dyed, which is not allowed.
+
+This system helps ensure compliance with the school's grooming standards by verifying the student's haircut against the required guidelines.`;
+
+        let usedKeys = new Set();
         let geminiResponse;
         let attempts = 0;
         const maxAttempts = 3;
 
         while (attempts < maxAttempts) {
+            const apiKey = getRandomApiKey(usedKeys);
+            if (!apiKey) break;
+            usedKeys.add(apiKey);
+
             try {
-                geminiResponse = await axios.get("https://gemini-api-5k0h.onrender.com/gemini/image", {
-                    params: {
-                        q: `Ensure the student's haircut complies with school policy. Respond with one of the following:  
+                console.log(`Using API Key: ${apiKey}`);
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-- "No Face Detected" if no face is found in the image.  
-- "Please one person at a time" if there are more than an individual in the image.
-- "Face is too far, please come closer." if the face is not clear or too distant and not that close similar to the required haircut.
-- "Acceptable" if the haircut meets the requirements.  
-- "Acceptable" if the haircut has a cut on the sides and not too long.  
-- "Unacceptable - [Reason]" if it violates the policy (e.g., "Unacceptable - Hair is too long").  
-- "Unacceptable - Hair is colored" if the hair is dyed.`,
-                        url: imageUrl,
-                    },
-                    headers: { "Accept": "application/json" }
-                });
+                geminiResponse = await model.generateContent([prompt, imagePart]);
 
-                // If successful, break out of the loop
-                break;
+                console.log("AI Response:", geminiResponse.response.text());
 
+                // Send response to frontend
+                return res.json({ result: await geminiResponse.response.text() });
             } catch (error) {
                 attempts++;
                 console.error(`Attempt ${attempts} failed:`, error.message);
 
                 if (attempts < maxAttempts) {
                     console.log("Retrying in 1 second...");
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } else {
                     console.error("Max retry attempts reached. Gemini API failed.");
-                    return res.status(500).json({ message: "Failed to analyze image after multiple attempts" });
+                    return res.status(500).json({ message: "Failed to analyze image after multiple attempts." });
                 }
             }
         }
-
-        // Send response to frontend
-        res.json({
-            imageUrl,
-            result: geminiResponse.data,
-        });
-
-        console.log("AI Response:", geminiResponse.data);
 
     } catch (error) {
         console.error("Error processing image:", error);
