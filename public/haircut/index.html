@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../assets/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Capture</title>
+    <title>Haircut Monitor</title>
     <style>
         body {
             margin: 0;
@@ -112,12 +113,26 @@
             margin-bottom: 10px;
         }
 
+        @keyframes popUp {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
         #result-container {
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: absolute;
+            width: 330px;
+            height: 280px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -127,11 +142,20 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(8px);
             border: 2px solid #ddd;
+            opacity: 0;
+            z-index: 10; /* Higher than the overlay */
+            /* Initially hidden */
+        }
+
+        .show-popup {
+            display: flex !important;
+            animation: popUp 0.3s ease-out forwards;
+            /* Apply the animation */
         }
 
         #capturedImage {
-            width: 200px;
-            height: 150px;
+            width: 300px;
+            height: 250px;
             border-radius: 10px;
             object-fit: cover;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
@@ -156,6 +180,7 @@
         .try-again {
             background-color: #d61500;
             color: white;
+            width: 150px;
         }
 
         .try-again:hover {
@@ -165,15 +190,55 @@
         .proceed {
             background-color: #04dc00;
             color: white;
+            width: 150px;
         }
 
         .proceed:hover {
             background-color: #27ae60;
         }
 
-        @media (max-width: 768px) {
-            #content-wrapper {
+        @media (orientation: landscape) {
+            body {
+                flex-direction: row;
+                /* Arrange content horizontally */
+                justify-content: space-around;
+                height: 100vh;
+            }
+
+            #container {
+                height: auto;
+                width: 100%;
+                display: flex;
                 flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #header-container {
+                position: absolute;
+                top: 10px;
+                /* Adjust title position */
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            #content-wrapper {
+                flex-direction: row;
+                gap: 30px;
+            }
+
+            #reference-box {
+                width: 200px;
+            }
+
+            #instructions {
+                width: 200px;
+            }
+
+            #captureBtn {
+                position: absolute;
+                bottom: 10%;
+                transform-origin: center;
             }
 
             #video-container {
@@ -227,6 +292,24 @@
             border-radius: 10px;
             /* Optional: Rounded corners */
         }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 9;
+        }
+
+        .blur-background {
+            filter: blur(8px);
+            pointer-events: none;
+            /* Ensure the background remains inactive */
+        }
     </style>
 </head>
 
@@ -268,6 +351,8 @@
         </div>
     </div>
 
+    <div id="overlay"></div>
+
     <script>
         const video = document.getElementById('video');
         const captureBtn = document.getElementById('captureBtn');
@@ -283,17 +368,17 @@
         function captureImage() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            // Set canvas size to match video dimensions
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-
-            // Capture raw image from camera
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Display the raw captured image
             capturedImage.src = canvas.toDataURL('image/png');
-            resultContainer.style.display = "flex";
+
+            resultContainer.classList.remove("show-popup");
+            void resultContainer.offsetWidth;
+            resultContainer.classList.add("show-popup");
+
+            document.getElementById('overlay').style.display = "block"; // Show the overlay
+            document.getElementById('container').classList.add("blur-background"); // Blur background
         }
 
         function mergeWithLayout() {
@@ -361,24 +446,37 @@
         }
 
         captureBtn.addEventListener('click', captureImage);
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedImage.src = canvas.toDataURL('image/png');
+
+            resultContainer.classList.remove("show-popup");
+            void resultContainer.offsetWidth;
+            resultContainer.classList.add("show-popup");
+
+            document.getElementById('overlay').style.display = "block"; // Show the overlay
+        }
+
         tryAgain.addEventListener('click', () => {
-            // Hide result container
+            resultContainer.classList.remove("show-popup");
             resultContainer.style.display = "none";
 
-            // Reset the analysis result text and hide the analysis container
             document.getElementById('analysisText').textContent = "";
             document.getElementById('analysisResult').style.display = "none";
 
-            // Show the video feed, capture button, and instructions
             document.getElementById('instructions').style.display = "block";
             document.getElementById('video-container').style.display = "block";
             document.getElementById('reference-box').style.display = "block";
 
-            // Clear the captured image source so the old image doesn't persist
             capturedImage.src = "";
-
-            // Ensure the capture button is visible again
             captureBtn.style.display = "block";
+
+            document.getElementById('overlay').style.display = "none"; // Hide overlay
+            document.getElementById('container').classList.remove("blur-background");
         });
 
         proceed.addEventListener('click', mergeWithLayout);
