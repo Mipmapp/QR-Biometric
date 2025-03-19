@@ -172,7 +172,8 @@ const genAPI = [
     "AIzaSyDdvYCReYbK3C7uw4wnplQDMyDfuWlPYNg",
     "AIzaSyBl74QFcr6JYwHeVSHcFvVNiFsEDyqs9J8",
     "AIzaSyCyh0Wdd4kM97NxIah71VcxyYDqKRSIjUE",
-    "AIzaSyAgiGw281bYAWHb0PiPVIr3kvdZP2GN2Bk"
+    "AIzaSyAgiGw281bYAWHb0PiPVIr3kvdZP2GN2Bk",
+    "AIzaSyDeTgfuEiq7t8FJZQP3IGcLYWbK9hbfqWI"
 ];
 
 // Function to get a random API key

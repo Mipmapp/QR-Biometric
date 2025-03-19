@@ -299,7 +299,7 @@
 
             #content-wrapper {
                 flex-direction: row;
-                gap: 30px;
+                gap: 10px;
             }
 
             #reference-box {
@@ -307,7 +307,7 @@
             }
 
             #instructions {
-                width: 200px;
+                width: 180px;
             }
 
             #captureBtn {
@@ -320,6 +320,17 @@
                 width: 300px;
                 height: 250px;
             }
+
+            html,
+            body {
+                overflow: hidden;
+                touch-action: none;
+                /* Prevent touch gestures like scroll and zoom */
+                overscroll-behavior: contain;
+                /* Prevent edge overscroll effect */
+                height: 100vh;
+            }
+
         }
 
         #loadingScreen {
@@ -410,7 +421,8 @@
                 <p><strong>Step 1:</strong> Click the <b>Capture</b> button while mimicking the required haircut pose.
                 </p>
                 <p><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied then wait for the response.</p>
-                <p><strong>Note:</strong> To obtain a more accurate result, please move your head closer to the camera.</p>
+                <p><strong>Note:</strong> To obtain a more accurate result, please move your head closer to the camera.
+                </p>
             </div>
         </div>
         <button id="captureBtn">Capture</button>
