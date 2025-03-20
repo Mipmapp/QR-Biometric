@@ -118,7 +118,7 @@
         return cachedRegisteredUsers;
       } catch (error) {
         console.error("Error loading registered users:", error);
-        if (cachedRegisteredUsers && !navigator.onLine) {
+        if (cachedRegisteredUsers) {
           return cachedRegisteredUsers;
         } else {
           return [];
