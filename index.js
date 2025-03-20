@@ -170,116 +170,111 @@ app.put("/update/:id", upload.single("image"), (req, res) => {
 
 const genAPI = [
     "AIzaSyDdvYCReYbK3C7uw4wnplQDMyDfuWlPYNg",
-    "AIzaSyBl74QFcr6JYwHeVSHcFvVNiFsEDyqs9J8",
-    "AIzaSyCyh0Wdd4kM97NxIah71VcxyYDqKRSIjUE",
-    "AIzaSyAgiGw281bYAWHb0PiPVIr3kvdZP2GN2Bk",
-    "AIzaSyDeTgfuEiq7t8FJZQP3IGcLYWbK9hbfqWI"
-];
-
-// Function to get a random API key
-function getRandomApiKey(usedKeys) {
+    "AIzaSyCu82O0zcYbUGDVxfzuOD95I9VyqHGK6fs",
+    "AIzaSyAGT0elsTgy_-yZMNhLWKAyWmfJyKIzQMw"
+  ];
+  
+  function getRandomApiKey(usedKeys) {
     const availableKeys = genAPI.filter(key => !usedKeys.has(key));
     return availableKeys.length > 0 ? availableKeys[Math.floor(Math.random() * availableKeys.length)] : null;
-}
-
-// Converts image file to Base64 for Gemini API
-function fileToGenerativePart(filePath, mimeType) {
+  }
+  
+  function fileToGenerativePart(filePath, mimeType) {
     try {
-        return {
-            inlineData: {
-                data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
-                mimeType,
-            },
-        };
+      return {
+        inlineData: {
+          data: Buffer.from(fs.readFileSync(filePath)).toString("base64"),
+          mimeType,
+        },
+      };
     } catch (error) {
-        console.error(`Error reading file ${filePath}:`, error.message);
-        return null;
+      console.error(`Error reading file ${filePath}:`, error.message);
+      return null;
     }
-}
-
-// Image Upload & Gemini Processing
-app.post("/haircut-image", upload.single("image"), async (req, res) => {
+  }
+  
+  async function callGeminiAPI(apiKey, prompt, imagePart) {
+    return new Promise(async (resolve, reject) => {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      
+      const timeout = setTimeout(() => {
+        reject(new Error('API Timeout: Response took longer than 10 seconds'));
+      }, 10000);
+  
+      try {
+        const response = await model.generateContent([prompt, imagePart]);
+        clearTimeout(timeout);
+        resolve(response.response.text());
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
+  }
+  
+  app.post("/haircut-image", upload.single("image"), async (req, res) => {
     if (!req.file) {
-        return res.status(400).json({ message: "No image uploaded" });
+      return res.status(400).json({ message: "No image uploaded" });
     }
-
+  
     try {
-        const imagePath = path.join(__dirname, "public", "uploads", req.file.filename);
-
-        // Convert image for Gemini API
-        const imagePart = fileToGenerativePart(imagePath, "image/png");
-        if (!imagePart) {
-            return res.status(500).json({ message: "Failed to read image file." });
-        }
-
-        // Delete the image file after conversion (to free up space)
-        fs.unlinkSync(imagePath);
-
-        // Prompt for Gemini API
-        const prompt = `Analyze the submitted "My Haircut" image and verify if it follows the school's grooming policy. Respond with the appropriate message based on the haircut's compliance.
+      const imagePath = path.join(__dirname, "public", "uploads", req.file.filename);
+      const imagePart = fileToGenerativePart(imagePath, "image/png");
+  
+      if (!imagePart) {
+        return res.status(500).json({ message: "Failed to read image file." });
+      }
+  
+      fs.unlinkSync(imagePath); // Delete the image after conversion
+  
+      const prompt = `Analyze the submitted user haircut image to verify compliance with the school's grooming policy. Respond with either "Acceptable" or "Unacceptable" based on haircut compliance.
 
 Key Requirements:
-Hair must be freshly groomed and neatly trimmed.
-The sides and back must be properly tapered or faded—excessive length or bulk is not allowed. If the sides appear noticeably longer or thicker than the required standard, mark it as unacceptable.
-The top hair can be slightly longer, as long as the sides are trimmed, tapered, or faded.
-Hair must not cover the ears, eyebrows, or extend past the collar.
-No hair coloring or highlights—only natural hair color is allowed.
-The image must clearly show the haircut (no accessories, hats, or filters).
-Automated System Responses:
-"Don't bow your head." – If the person is tilting their head downward.
-"No Person Detected" – No person is found in the image.
-"Please ensure only one person is in the frame." – Multiple faces detected.
-"Image is too blurry, please move closer." – The face is unclear, blurry, too distant, or does not properly show the haircut.
-"Acceptable" – The haircut meets the school's requirements.
-"Unacceptable - Hair is too long." – The hair exceeds the allowed length.
-"Unacceptable - Hair is colored." – Artificial hair dye or highlights are detected.
-"Unacceptable - Sides are too long." – The sides are longer than permitted or not properly tapered.
-If a response above is selected, do not provide additional reasoning. If another issue is detected, return:
+- Hair must be freshly groomed and neatly trimmed.
+- Sides and back must have signs of having tapered or faded.
+- The top hair may be slightly longer but must maintain a clean, structured appearance.
+- Hair must not cover the ears, eyebrows, or extend past the collar.
+- No artificial hair color or highlights. Only natural hair colors are permitted.
+- The image must clearly display the haircut without any accessories, hats, or filters.
+- The image must not be too far from capturing in the camera.
 
-"Unacceptable - [Other Reason]" – The haircut violates other school policies (e.g., unkempt appearance, extreme styles).
-Refer to "My Haircut" as the user’s haircut, using "You" or "Your" for clarity. Keep responses simple, concise, direct, and jargon-free.`;
+Compliance Responses:
+- "Acceptable - [Reason]" – The haircut complies with the school's grooming policy.
+- "Unacceptable - [Reason]" – The haircut does not meet the school's grooming policy.
 
-        let usedKeys = new Set();
-        let geminiResponse;
-        let attempts = 0;
-        const maxAttempts = 3;
-
-        while (attempts < maxAttempts) {
-            const apiKey = getRandomApiKey(usedKeys);
-            if (!apiKey) break;
-            usedKeys.add(apiKey);
-
-            try {
-                console.log(`Using API Key: ${apiKey}`);
-                const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-                geminiResponse = await model.generateContent([prompt, imagePart]);
-
-                console.log("AI Response:", geminiResponse.response.text());
-
-                // Send response to frontend
-                return res.json({ result: await geminiResponse.response.text() });
-            } catch (error) {
-                attempts++;
-                console.error(`Attempt ${attempts} failed:`, error.message);
-
-                if (attempts < maxAttempts) {
-                    console.log("Retrying in 1 second...");
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                } else {
-                    console.error("Max retry attempts reached. Gemini API failed.");
-                    return res.status(500).json({ message: "Failed to analyze image after multiple attempts." });
-                }
-            }
+Provide clear and concise results without additional comments unless necessary for clarification. Refer "My Haircut" image as literally the user's haircut image.`;
+  
+      let usedKeys = new Set();
+      let attempts = 0;
+      const maxAttempts = 3;
+  
+      while (attempts < maxAttempts) {
+        const apiKey = getRandomApiKey(usedKeys);
+        if (!apiKey) break;
+  
+        usedKeys.add(apiKey);
+        attempts++;
+  
+        try {
+          console.log(`Using API Key: ${apiKey}`);
+          const result = await callGeminiAPI(apiKey, prompt, imagePart);
+          console.log(result);
+          return res.json({ result });
+        } catch (error) {
+          console.error(`Attempt ${attempts} failed:`, error.message);
+  
+          if (attempts >= maxAttempts) {
+            return res.status(500).json({ message: "Failed to analyze image after multiple attempts." });
+          }
         }
-
+      }
     } catch (error) {
-        console.error("Error processing image:", error);
-        res.status(500).json({ message: "Failed to process image" });
+      console.error("Error processing image:", error);
+      res.status(500).json({ message: "Failed to process image" });
     }
-});
-
+  });
+  
 // Start the server
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);

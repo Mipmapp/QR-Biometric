@@ -105,36 +105,36 @@
     let cachedRegisteredUsers = null; // Store previously fetched data
     let scannedIds = {};
 
-    // async function fetchRegisteredUsers() {
-    //   if (cachedRegisteredUsers) {
-    //     return cachedRegisteredUsers;
-    //   }
-
-    //   try {
-    //     const response = await fetch(`registered.json?t=${new Date().getTime()}`, {
-    //       cache: "no-store",
-    //     });
-    //     cachedRegisteredUsers = await response.json();
-    //     return cachedRegisteredUsers;
-    //   } catch (error) {
-    //     console.error("Error loading registered users:", error);
-    //     if (cachedRegisteredUsers) {
-    //       return cachedRegisteredUsers;
-    //     } else {
-    //       return [];
-    //     }
-    //   }
-    // }
-
     async function fetchRegisteredUsers() {
+      if (cachedRegisteredUsers && !navigator.onLine) {
+        return cachedRegisteredUsers;
+      }
+
       try {
-        const response = await fetch(`registered.json?t=${new Date().getTime()}`, { cache: "no-store" });
-        return await response.json(); // Always fetch fresh data
+        const response = await fetch(`registered.json?t=${new Date().getTime()}`, {
+          cache: "no-store",
+        });
+        cachedRegisteredUsers = await response.json();
+        return cachedRegisteredUsers;
       } catch (error) {
         console.error("Error loading registered users:", error);
-        return []; // Return an empty array if there's an error
+        if (cachedRegisteredUsers && !navigator.onLine) {
+          return cachedRegisteredUsers;
+        } else {
+          return [];
+        }
       }
     }
+
+    // async function fetchRegisteredUsers() {
+    //   try {
+    //     const response = await fetch(`registered.json?t=${new Date().getTime()}`, { cache: "no-store" });
+    //     return await response.json(); // Always fetch fresh data
+    //   } catch (error) {
+    //     console.error("Error loading registered users:", error);
+    //     return []; // Return an empty array if there's an error
+    //   }
+    // }
 
     function getDynamicQRBoxSize() {
       const minDimension = Math.min(window.innerWidth, window.innerHeight);
@@ -184,15 +184,22 @@
           `;
             document.getElementById("match-sound").play();
             if (user.mobile_num) {
-              sendMessage();
+              sendMessage(user.userType);
             };
 
-            function sendMessage() {
-              const message = `Dear Parent, 
+            function sendMessage(type) {
+              let message;
+              if (type === "faculty") {
+                message = `Hello, ${user.name}. You have arrived at school and entered the premises today at ${loginTime}.
+
+#SHCCI-HSD #ProjectNORMaL`;
+              } else {
+                message = `Dear Parent, 
               
 ${user.name} has arrived at school and entered the premises today, ${loginTime}. 
               
 #SHCCI-HSD #ProjectNORMaL`;
+              }
 
               let number = user.mobile_num;
               // let number = "09510898845";
