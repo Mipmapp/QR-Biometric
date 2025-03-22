@@ -307,11 +307,11 @@
             }
 
             #reference-box {
-                width: 200px;
+                width: 160px;
             }
 
             #instructions {
-                width: 180px;
+                width: 160px;
             }
 
             #captureBtn {
@@ -411,20 +411,41 @@
         </div>
         <div id="content-wrapper">
             <div id="reference-box">
-                <h3>Required Haircut</h3>
+                <p><strong>REQUIRED HAIRCUT</strong><br><span style="font-size: 12px;">for <strong>male</strong>
+                        students</span></p>
                 <img id="reference-image" src="barbers_cut.png" alt="Haircut Reference" width="150" height="200"
                     style="border-radius:10px; object-fit: cover;">
-                <p>Barber's Cut</p>
+                <p style="font-size: 12px;">Barber's Cut</p>
             </div>
             <div id="video-container">
                 <video id="video" autoplay></video>
+                <audio id="countdownSound" src="../assets/countdown.mp3" preload="auto"></audio>
+                <audio id="captureSound" src="../assets/capture.mp3" preload="auto"></audio>
+                <audio id="acceptableSound" src="../assets/match.m4a" preload="auto"></audio>
+                <audio id="unacceptableSound" src="../assets/error.mp3" preload="auto"></audio>
+                <div id="countdown" style="
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 100px;
+      color: white;
+      font-weight: bold;
+      display: none;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+      z-index: 10;
+  ">
+                </div>
             </div>
             <div id="instructions">
                 <h3>Steps to Capture</h3>
-                <p><strong>Step 1:</strong> Click the <b>Capture</b> button while mimicking the required haircut pose.
+                <p style="font-size: 12px;"><strong>Step 1:</strong> Click the <b>Capture</b> button while mimicking the
+                    required haircut pose.
                 </p>
-                <p><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied then wait for the response.</p>
-                <p><strong>Note:</strong> To obtain a more accurate result, please move your head closer to the camera.
+                <p style="font-size: 12px;"><strong>Step 2:</strong> Click <b>Proceed</b> if you are satisfied then wait
+                    for the response.</p>
+                <p style="font-size: 12px;"><strong>Note:</strong> To obtain a more accurate result, please move your
+                    head closer to the camera.
                 </p>
             </div>
         </div>
@@ -499,6 +520,8 @@
                     })
                         .then(response => response.json())
                         .then(data => {
+                            const acceptable = document.getElementById('acceptableSound');
+                            const unacceptable = document.getElementById('unacceptableSound');
                             document.getElementById('loadingScreen').style.display = "none"; // Hide loading screen
                             document.getElementById('instructions').style.display = "none";
                             document.getElementById('video-container').style.display = "none";
@@ -515,13 +538,15 @@
                                 let reason = result.replace("Acceptable - ", ""); // Extract the reason
                                 formattedText = `<span>Haircut Analysis:</span><br>
 <span style="color: limegreen; font-size: 30px; font-weight: bold;">Acceptable</span><br>
-<p style="font-size: 15px;">${reason}</p>`; // Display the reason normally
+<p style="font-size: 15px;">${reason}</p>`;
+                                acceptable.play();
                             }
                             else if (result.startsWith("Unacceptable")) {
                                 let reason = result.replace("Unacceptable - ", ""); // Extract the reason
                                 formattedText = `<span>Haircut Analysis:</span><br>
                          <span style="color: red; font-size: 30px; font-weight: bold;">Unacceptable</span><br>
                          <p style="font-size: 15px;">${reason}</p>`; // Display the reason normally
+                                unacceptable.play();
                             }
                             else {
                                 formattedText = `<p style="color: orange; font-size: 20px; font-weight: bold;">${result}</p>`;
@@ -542,7 +567,37 @@
             };
         }
 
-        captureBtn.addEventListener('click', captureImage);
+        const countdownElement = document.getElementById('countdown');
+        const countdownSound = document.getElementById('countdownSound');
+        const captureSound = document.getElementById('captureSound');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => console.error(err));
+
+        captureBtn.addEventListener('click', () => {
+            startCountdown(4); // 4 seconds countdown
+        });
+
+        function startCountdown(seconds) {
+            let counter = seconds;
+            countdownElement.style.display = 'block';
+
+            const countdownInterval = setInterval(() => {
+                countdownElement.textContent = counter;
+                countdownSound.play(); // Play the countdown sound
+                counter--;
+
+                if (counter < 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = 'none';
+                    captureSound.play(); // Play the capture sound
+                    captureImage();
+                }
+            }, 1000);
+        }
 
         tryAgain.addEventListener('click', () => {
             proceed.style.display = "block";

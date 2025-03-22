@@ -270,7 +270,7 @@ video {
     justify-content: space-between;
     gap: 20px;
     width: 90%; /* Adjust width for better fit */
-    height: 80%; /* Adjust height for better fit */
+    height: 75%; /* Adjust height for better fit */
     max-width: 1200px; /* Increase max-width for larger screens */
   }
 

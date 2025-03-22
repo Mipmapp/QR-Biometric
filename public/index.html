@@ -202,7 +202,21 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
               }
 
               let number = user.mobile_num;
-              // let number = "09510898845";
+              // async function sendMessage() {
+                // try {
+                //   const response = await axios.post(
+                //     "https://adapted-wahoo-equipped.ngrok-free.app/sms",
+                //     {
+                //       to: number,
+                //       message,
+                //     },
+                //   );
+
+                //   console.log(response.data);
+                // } catch (error) {
+                //   console.log(error);
+                // }
+              // }
 
               function generateGUID(length) {
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -242,9 +256,22 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
                 .then(response => {
                   console.log('Response:', response.data);
                 })
-                .catch(error => {
+                .catch(async (error) => {
                   console.error('Error:', error.response ? error.response.data : error.message);
+                  try {
+                  const response = await axios.post(
+                    "https://adapted-wahoo-equipped.ngrok-free.app/sms",
+                    {
+                      to: number,
+                      message,
+                    },
+                  );
+
+                  console.log(response.data);
+                } catch (error) {
+                  console.log(error);
                   alert(`Failed to send message: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+                }
                 });
             }
           } else {
