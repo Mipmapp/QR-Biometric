@@ -419,7 +419,7 @@
             </div>
             <div id="video-container">
                 <video id="video" autoplay></video>
-                <audio id="countdownSound" src="../assets/countdown.mp3" preload="auto"></audio>
+                <audio id="countdownSound" src="../assets/countdown.wav" preload="auto"></audio>
                 <audio id="captureSound" src="../assets/capture.mp3" preload="auto"></audio>
                 <audio id="acceptableSound" src="../assets/match.m4a" preload="auto"></audio>
                 <audio id="unacceptableSound" src="../assets/error.mp3" preload="auto"></audio>
@@ -578,11 +578,12 @@
             .catch((err) => console.error(err));
 
         captureBtn.addEventListener('click', () => {
-            startCountdown(4); // 4 seconds countdown
+            startCountdown(3); // 3 seconds countdown
         });
 
         function startCountdown(seconds) {
             let counter = seconds;
+            countdownElement.textContent = '';
             countdownElement.style.display = 'block';
 
             const countdownInterval = setInterval(() => {

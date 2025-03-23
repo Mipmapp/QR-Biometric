@@ -245,7 +245,7 @@ Compliance Responses:
 - "Acceptable - [Reason]" – The haircut complies with the school's grooming policy.
 - "Unacceptable - [Reason]" – The haircut does not meet the school's grooming policy.
 
-Provide clear and concise results without additional comments unless necessary for clarification. Refer "My Haircut" image as literally the user's haircut image.`;
+Provide clear, short, and concise results without additional comments unless necessary for clarification. Refer "My Haircut" image as literally the user's haircut image.`;
 
     let usedKeys = new Set();
     let attempts = 0;
