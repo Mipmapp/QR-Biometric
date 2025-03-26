@@ -289,6 +289,18 @@ video {
   .status-notification {
     font-size: 0.8em; /* Adjust status notification size */
   }
+
+  .user-image {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .user-name {
+    font-size: 1.2em;
+  }
+  .user-grade-section {
+    font-size: 0.9em;
+  }
 }
 
 /* Fullscreen buttons container */
