@@ -70,5 +70,14 @@
     "userType": "faculty",
     "mobile_num": "09510898845",
     "image": null
+  },
+  {
+    "id": "B93F1521-A680-43F5-8808-542CF33391DC",
+    "name": "Janiela J. Maglinte",
+    "grade": "9",
+    "section": "St. Margaret Mary",
+    "userType": "student",
+    "mobile_num": "09510898845",
+    "image": null
   }
 ]

@@ -202,76 +202,23 @@ ${user.name} has arrived at school and entered the premises today, ${loginTime}.
               }
 
               let number = user.mobile_num;
-              // async function sendMessage() {
-                // try {
-                //   const response = await axios.post(
-                //     "https://adapted-wahoo-equipped.ngrok-free.app/sms",
-                //     {
-                //       to: number,
-                //       message,
-                //     },
-                //   );
-
-                //   console.log(response.data);
-                // } catch (error) {
-                //   console.log(error);
-                // }
-              // }
-
-              function generateGUID(length) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let result = '';
-                for (let i = 0; i < length; i++) {
-                  result += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                return result;
-              }
 
               if (number.startsWith("0")) {
                 number = number.replace(/^0/, "+63");
               }
 
-              const data = {
-                data: {
-                  target_device_iden: "ujyGpJ5enimsjz11bLu8xU",
-                  addresses: [number],
-                  guid: generateGUID(15),
+              axios.post("https://adapted-wahoo-equipped.ngrok-free.app/sms",
+                {
                   message,
+                  to: number,
                 }
-              };
-
-              axios.post('https://api.pushbullet.com/v3/create-text', data, {
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Basic Z2k4RVV1NXk2c2htR2xqSGJtOUNtZWFnMWZQT0FRQU06',
-                  'Accept': '*/*',
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache',
-                  'API-Version': '2014-05-07',
-                  'Origin': 'https://www.pushbullet.com',
-                  'Referer': 'https://www.pushbullet.com/',
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0',
-                }
-              })
+              )
                 .then(response => {
-                  console.log('Response:', response.data);
+                  console.log("Response:", response.data);
                 })
-                .catch(async (error) => {
-                  console.error('Error:', error.response ? error.response.data : error.message);
-                  try {
-                  const response = await axios.post(
-                    "https://adapted-wahoo-equipped.ngrok-free.app/sms",
-                    {
-                      to: number,
-                      message,
-                    },
-                  );
-
-                  console.log(response.data);
-                } catch (error) {
-                  console.log(error);
-                  alert(`Failed to send message: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-                }
+                .catch(error => {
+                  console.error("Error:", error.response ? error.response.data : error.message);
+                  alert("Failed to send message: " + (error.response ? error.response.data : error.message));
                 });
             }
           } else {
